@@ -1,7 +1,7 @@
 import type { Profile } from "@prisma/client";
 import type { CreateNeed, NeedDTO } from "@/lib/schemas/food";
 import { AppError } from "../lib/errors";
-import { approx } from "../logic/geo";
+import { approx, haversineKm } from "../logic/geo";
 import { needRepository, type NeedWithTaker } from "../repositories/need.repository";
 import { maintenanceService } from "./maintenance.service";
 
@@ -27,6 +27,24 @@ export function toNeedDTO(n: NeedWithTaker): NeedDTO {
 }
 
 export const needService = {
+  /** Public view of what receivers need (area + approximate location only, no private notes). */
+  async listPublic(f: { q?: string; area?: string; diet?: "VEG" | "NON_VEG"; sort: "soonest" | "nearest" }, page: number, limit: number, here?: { lat: number; lng: number }) {
+    await maintenanceService.sweepIfStale();
+    const rows = await needRepository.listPublic(f, 200);
+    const withDist = rows.map((n) => ({
+      n,
+      d: here && n.taker.lat != null && n.taker.lng != null ? haversineKm(here, { lat: n.taker.lat, lng: n.taker.lng }) : Number.POSITIVE_INFINITY,
+    }));
+    if (here && f.sort === "nearest") withDist.sort((a, b) => a.d - b.d);
+    const total = withDist.length;
+    const items = withDist.slice((page - 1) * limit, page * limit).map(({ n, d }) => ({
+      ...toNeedDTO(n),
+      notes: "",
+      ...(Number.isFinite(d) && { distanceKm: Math.round(d * 10) / 10 }),
+    }));
+    return { items, total, page, limit, pages: Math.max(1, Math.ceil(total / limit)) };
+  },
+
   async create(taker: Profile, input: CreateNeed) {
     if (taker.role !== "TAKER") throw AppError.forbidden("Only receivers can post needs");
     const n = await needRepository.create({ takerId: taker.id, ...input });

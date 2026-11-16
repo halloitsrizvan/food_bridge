@@ -1,18 +1,20 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { HandHeart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MapView } from "@/components/map/map-view";
 import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip } from "@/components/shared/badges";
 import { BigCountdown } from "@/components/shared/countdown-ring";
+import { NeedCard } from "@/components/shared/need-card";
 import { PostCard } from "@/components/shared/post-card";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/shared/states";
 import { LoginForm } from "@/components/auth/auth-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useMe, useOffers, type OfferFilters } from "@/lib/api/hooks";
+import { useMe, useOffers, usePublicNeeds, type OfferFilters } from "@/lib/api/hooks";
 import { CATEGORY_LABEL } from "@/lib/format";
 import { t } from "@/lib/i18n/en";
 import { requestLocation, useLocation } from "@/lib/use-location";
@@ -50,7 +52,10 @@ export function LiveFeed() {
   const sort = sortChoice ?? (located ? "nearest" : "soonest");
   const setSort = setSortChoice;
   const [selected, setSelected] = useState<PublicOffer | null>(null);
-  const [loginFor, setLoginFor] = useState<PublicOffer | null>(null);
+  // login gate for both kinds of card
+  const [loginFor, setLoginFor] = useState<{ kind: "offer" | "need"; id: string; title: string; who: string } | null>(null);
+  // "Food + requests": also list what receivers are asking for
+  const [showNeeds, setShowNeeds] = useState(false);
 
   useEffect(() => {
     const on = (e: Event) => {
@@ -72,8 +77,17 @@ export function LiveFeed() {
   const filters: OfferFilters = { q: dq || undefined, area: darea || undefined, diet, category, maxMinutesLeft: maxMin, sort: sort === "nearest" && !located ? "soonest" : sort, page, limit: 9, lat: loc.lat ?? undefined, lng: loc.lng ?? undefined };
   const { data, isPending, isError, refetch, isPlaceholderData } = useOffers(filters);
 
+  const needsQ = usePublicNeeds(
+    { q: dq || undefined, area: darea || undefined, diet, sort: located ? "nearest" : "soonest", lat: loc.lat ?? undefined, lng: loc.lng ?? undefined, limit: 6 },
+    showNeeds,
+  );
+  function offerToNeed(n: { id: string; title: string; takerName: string }) {
+    if (!me) return setLoginFor({ kind: "need", id: n.id, title: n.title, who: n.takerName });
+    router.push("/dashboard/nearby"); // givers see the map and can offer food from there
+  }
+
   function contact(o: PublicOffer) {
-    if (!me) return setLoginFor(o); // claim needs a login: open the modal, then continue
+    if (!me) return setLoginFor({ kind: "offer", id: o.id, title: o.title, who: o.giverName }); // claim needs a login: open the modal, then continue
     if (me.role === "GIVER") return setSelected(o);
     router.push(`/dashboard/offers/${o.id}`);
   }
@@ -114,6 +128,15 @@ export function LiveFeed() {
           <Input aria-label="Filter by area" placeholder="Area (e.g. Palayam)" value={area} onChange={(e) => setArea(e.target.value)} className="h-11 rounded-xl" />
         </div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filters">
+          <button
+            type="button"
+            aria-pressed={showNeeds}
+            onClick={() => setShowNeeds((v) => !v)}
+            className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors", showNeeds ? "border-info bg-info text-white" : "border-info/40 bg-background text-info hover:bg-info/10")}
+          >
+            <HandHeart className="size-4" aria-hidden /> Food + requests
+          </button>
+          <span className="mx-1 hidden w-px bg-line sm:block" aria-hidden />
           <Chip active={diet === "VEG"} onClick={() => setDiet(diet === "VEG" ? undefined : "VEG")}>Veg</Chip>
           <Chip active={diet === "NON_VEG"} onClick={() => setDiet(diet === "NON_VEG" ? undefined : "NON_VEG")}>Non-veg</Chip>
           <span className="mx-1 hidden w-px bg-line sm:block" aria-hidden />
@@ -135,10 +158,12 @@ export function LiveFeed() {
         <ErrorState message={t.states.error} onRetry={() => refetch()} />
       ) : isPending ? (
         <CardSkeletons n={6} />
-      ) : data.items.length === 0 ? (
+      ) : data.items.length === 0 && !(showNeeds && needsQ.data?.items.length) ? (
         <EmptyState art="search" title="No food matches right now" description="Try clearing a filter. New surplus is posted all day, and the list updates on its own." action={<Button variant="outline" onClick={() => { setQ(""); setArea(""); setDiet(undefined); setCategory(undefined); setMaxMin(undefined); }}>Clear filters</Button>} />
       ) : (
         <>
+          {showNeeds && <h3 className="mb-3 font-display text-lg font-semibold">Available food <span className="text-sm font-normal text-muted-foreground">({data.total})</span></h3>}
+          {data.items.length === 0 && <p className="mb-4 text-sm text-muted-foreground">No food is available with these filters right now.</p>}
           <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3 transition-opacity", isPlaceholderData && "opacity-60")} aria-live="polite">
             {data.items.map((o, i) => (
               <PostCard key={o.id} offer={o} index={i} onOpen={() => setSelected(o)} onContact={() => contact(o)} actionLabel={me?.role === "GIVER" ? "View" : "Contact"} />
@@ -157,6 +182,28 @@ export function LiveFeed() {
               </Button>
             </nav>
           )}
+
+          {showNeeds && (
+            <div className="mt-10" aria-live="polite">
+              <h3 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
+                <HandHeart className="size-5 text-info" aria-hidden /> Receivers asking for food{" "}
+                <span className="text-sm font-normal text-muted-foreground">({needsQ.data?.total ?? 0})</span>
+              </h3>
+              {needsQ.isPending ? (
+                <CardSkeletons n={3} />
+              ) : needsQ.isError ? (
+                <ErrorState message={t.states.error} onRetry={() => needsQ.refetch()} />
+              ) : needsQ.data.items.length === 0 ? (
+                <p className="rounded-2xl border border-dashed bg-background p-6 text-center text-sm text-muted-foreground">No open requests with these filters.</p>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {needsQ.data.items.map((n, i) => (
+                    <NeedCard key={n.id} need={n} index={i} disabled={me?.role === "TAKER"} actionLabel={me?.role === "TAKER" ? "Receivers cannot offer" : "I can give this"} onAction={() => offerToNeed(n)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
 
@@ -165,16 +212,16 @@ export function LiveFeed() {
       <Dialog open={!!loginFor} onOpenChange={(o) => !o && setLoginFor(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t.gate.loginToClaim}</DialogTitle>
+            <DialogTitle>{loginFor?.kind === "need" ? "Log in as a giver to offer food" : t.gate.loginToClaim}</DialogTitle>
             <DialogDescription>
-              Log in as a receiver to contact <b>{loginFor?.giverName}</b> about “{loginFor?.title}”. New here?{" "}
+              {loginFor?.kind === "need" ? <>Log in as a giver to offer food to <b>{loginFor.who}</b> for “{loginFor.title}”.</> : <>Log in as a receiver to contact <b>{loginFor?.who}</b> about “{loginFor?.title}”.</>} New here?{" "}
               <a className="font-medium text-primary underline" href="/signup">
                 Create an account
               </a>
               .
             </DialogDescription>
           </DialogHeader>
-          <LoginForm compact onDone={() => { const id = loginFor?.id; setLoginFor(null); router.push(`/dashboard/offers/${id}`); router.refresh(); }} />
+          <LoginForm compact onDone={() => { const g = loginFor; setLoginFor(null); router.push(g?.kind === "need" ? "/dashboard/nearby" : `/dashboard/offers/${g?.id}`); router.refresh(); }} />
         </DialogContent>
       </Dialog>
       </div>

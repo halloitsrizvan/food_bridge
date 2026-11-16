@@ -27,6 +27,9 @@ export const useLeaderboard = () => useQuery({ queryKey: ["leaderboard"], queryF
 export type OfferFilters = { area?: string; q?: string; diet?: string; category?: string; maxMinutesLeft?: number; sort?: string; page?: number; limit?: number; lat?: number; lng?: number };
 export const useOffers = (f: OfferFilters) =>
   useQuery({ queryKey: ["offers", f], queryFn: () => api<Page<PublicOffer>>(`/api/v1/offers${qs(f)}`), refetchInterval: 20_000, placeholderData: (p) => p });
+export type NeedFilters = { area?: string; q?: string; diet?: string; sort?: string; page?: number; limit?: number; lat?: number; lng?: number };
+export const usePublicNeeds = (f: NeedFilters, enabled = true) =>
+  useQuery({ queryKey: ["needs-public", f], enabled, queryFn: () => api<Page<NeedDTO>>(`/api/v1/needs/public${qs(f)}`), refetchInterval: 20_000, placeholderData: (p) => p });
 export const useOffer = (id: string) => useQuery({ queryKey: ["offer", id], queryFn: () => api<PublicOffer>(`/api/v1/offers/${id}`), refetchInterval: 20_000 });
 
 export const useSafeHours = () =>
@@ -48,11 +51,11 @@ export function useMe() {
     retry: false,
   });
 }
-export const useMyOffers = () => useQuery({ queryKey: ["my-offers"], queryFn: () => api<MyOffer[]>("/api/v1/me/offers"), refetchInterval: 15_000 });
-export const useMyNeeds = () => useQuery({ queryKey: ["my-needs"], queryFn: () => api<NeedDTO[]>("/api/v1/me/needs"), refetchInterval: 15_000 });
+export const useMyOffers = (enabled = true) => useQuery({ queryKey: ["my-offers"], enabled, queryFn: () => api<MyOffer[]>("/api/v1/me/offers"), refetchInterval: 15_000 });
+export const useMyNeeds = (enabled = true) => useQuery({ queryKey: ["my-needs"], enabled, queryFn: () => api<NeedDTO[]>("/api/v1/me/needs"), refetchInterval: 15_000 });
 export const useMyClaims = () => useQuery({ queryKey: ["my-claims"], queryFn: () => api<ClaimView[]>("/api/v1/me/claims"), refetchInterval: 10_000 });
-export const useFeed = () => useQuery({ queryKey: ["feed"], queryFn: () => api<OfferWithMatch[]>("/api/v1/me/feed"), refetchInterval: 20_000 });
-export const useNeedsNear = () => useQuery({ queryKey: ["needs-near"], queryFn: () => api<NeedDTO[]>("/api/v1/needs"), refetchInterval: 20_000 });
+export const useFeed = (enabled = true) => useQuery({ queryKey: ["feed"], enabled, queryFn: () => api<OfferWithMatch[]>("/api/v1/me/feed"), refetchInterval: 20_000 });
+export const useNeedsNear = (enabled = true) => useQuery({ queryKey: ["needs-near"], enabled, queryFn: () => api<NeedDTO[]>("/api/v1/needs"), refetchInterval: 20_000 });
 export const useTakerSuggestions = (offerId: string | undefined) =>
   useQuery({ queryKey: ["suggest", offerId], enabled: !!offerId, queryFn: () => api<TakerSuggestion[]>(`/api/v1/offers/${offerId}/suggestions`) });
 export const useClaim = (id: string) => useQuery({ queryKey: ["claim", id], queryFn: () => api<ClaimView>(`/api/v1/claims/${id}`), refetchInterval: 6_000 });

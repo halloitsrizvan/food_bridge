@@ -64,6 +64,7 @@ reg({ method: "post", path: "/api/v1/me/appeal", tag: "Trust", summary: "Appeal 
 
 // Offers
 reg({ method: "get", path: "/api/v1/offers", tag: "Offers", summary: "Live public posts (area only)", query: OfferQuerySchema, res: z.object({ items: z.array(PublicOfferSchema), total: z.number(), page: z.number(), limit: z.number(), pages: z.number() }) });
+reg({ method: "get", path: "/api/v1/needs/public", tag: "Needs", summary: "Public: open needs from receivers (area only), nearest first when lat/lng are sent" });
 reg({ method: "post", path: "/api/v1/offers", tag: "Offers", summary: "Post surplus food", auth: "GIVER", body: CreateOfferSchema, res: PublicOfferSchema, status: 201 });
 reg({ method: "get", path: "/api/v1/offers/{id}", tag: "Offers", summary: "Public view of one post", params: id, res: PublicOfferSchema });
 reg({ method: "patch", path: "/api/v1/offers/{id}", tag: "Offers", summary: "Edit an open post", auth: "GIVER", params: id });

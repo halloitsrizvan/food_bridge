@@ -25,6 +25,21 @@ export const needRepository = {
       take,
     }),
 
+  /** Public listing: open needs of active receivers. */
+  listPublic: (f: { q?: string; area?: string; diet?: "VEG" | "NON_VEG" }, take: number, now = new Date()) =>
+    prisma.need.findMany({
+      where: {
+        status: "OPEN",
+        neededBy: { gt: now },
+        ...(f.diet && { diet: { in: [f.diet, "BOTH"] } }),
+        ...(f.q && { OR: [{ title: { contains: f.q, mode: "insensitive" } }, { taker: { name: { contains: f.q, mode: "insensitive" } } }] }),
+        taker: { status: "ACTIVE", onboarded: true, ...(f.area && { area: { contains: f.area, mode: "insensitive" } }) },
+      },
+      include: withTaker,
+      orderBy: { neededBy: "asc" },
+      take,
+    }),
+
   forSweep: () =>
     prisma.need.findMany({ where: { status: { in: ["OPEN", "CONTACTED"] } }, select: { id: true, neededBy: true, status: true }, take: 500 }),
 

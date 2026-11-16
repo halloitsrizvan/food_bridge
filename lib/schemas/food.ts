@@ -88,6 +88,17 @@ export const OfferQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(12),
 });
 
+export const NeedQuerySchema = z.object({
+  area: z.string().trim().max(80).optional(),
+  q: z.string().trim().max(80).optional(),
+  diet: z.enum(["VEG", "NON_VEG"]).optional(),
+  sort: z.enum(["soonest", "nearest"]).default("nearest"),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  page: z.coerce.number().int().min(1).max(200).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(12),
+});
+
 export const MatchFactorsSchema = z.object({
   proximity: z.number(),
   timeSlack: z.number(),
@@ -156,6 +167,8 @@ export type NeedDTO = {
   match?: MatchInfo;
   /** giver view: the own offer this need was scored against */
   forOfferId?: string;
+  /** km from the visitor, only when lat/lng were sent */
+  distanceKm?: number;
 };
 
 export const ContactNeedSchema = z.object({ offerId: z.uuid() });
