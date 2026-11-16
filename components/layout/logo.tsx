@@ -3,13 +3,13 @@ import { cn } from "@/lib/utils";
 export function Logo({ light, className }: { light?: boolean; className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <span className="grid size-9 place-items-center rounded-full bg-primary" aria-hidden>
+      <span className="grid size-8 place-items-center rounded-full bg-primary sm:size-9" aria-hidden>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 13h18a0 0 0 0 1 0 0 9 9 0 0 1-18 0z" />
           <path d="M8 9c0-2 1.5-2.5 1.5-4.5M13 9c0-2 1.5-2.5 1.5-4.5" stroke="#F2A33A" />
         </svg>
       </span>
-      <span className={cn("font-display text-2xl font-bold tracking-tight", light ? "text-white" : "text-primary")}>FoodBridge</span>
+      <span className={cn("font-display text-xl font-bold tracking-tight sm:text-2xl", light ? "text-white" : "text-primary")}>FoodBridge</span>
     </span>
   );
 }

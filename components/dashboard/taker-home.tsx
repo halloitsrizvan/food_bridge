@@ -36,9 +36,9 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
 
   return (
     <div className="space-y-8">
-      <section className={cn("flex flex-wrap items-center justify-between gap-4 rounded-[24px] p-6 shadow-soft transition-colors", me.openToReceive ? "bg-primary text-primary-foreground" : "border bg-surface")} aria-label="Open to receive">
+      <section className={cn("flex flex-col items-start justify-between gap-4 rounded-[24px] p-5 shadow-soft transition-colors sm:flex-row sm:items-center sm:p-6", me.openToReceive ? "bg-primary text-primary-foreground" : "border bg-surface")} aria-label="Open to receive">
         <div>
-          <p className="font-display text-2xl font-semibold">{me.openToReceive ? "Open to receive food" : "Not receiving right now"}</p>
+          <p className="font-display text-xl font-semibold sm:text-2xl">{me.openToReceive ? "Open to receive food" : "Not receiving right now"}</p>
           <p className={cn("text-sm", me.openToReceive ? "text-primary-foreground/80" : "text-muted-foreground")}>
             {me.openToReceive ? "Givers nearby will see you and we alert you when food is reachable." : "You will not be matched or notified until you switch back on."}
           </p>
@@ -49,7 +49,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
         </label>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Meals received" value={meals} sub={`${done.length} handovers`} />
         <Stat label="Members" value={me.members ?? "-"} sub={KIND_LABEL[me.takerKind ?? ""] ?? ""} />
         <Stat label="Open requests" value={openNeeds.length + active.length} sub="needs and claims" />
@@ -65,7 +65,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
 
       {active.length > 0 && (
         <section aria-label="Active claims" className="space-y-3">
-          <h2 className="font-display text-xl font-semibold">Active handovers</h2>
+          <h2 className="font-display text-lg font-semibold sm:text-xl">Active handovers</h2>
           <div className="grid gap-4 md:grid-cols-2">{active.map((c) => <ClaimCard key={c.id} claim={c} />)}</div>
         </section>
       )}
@@ -73,7 +73,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
       <section aria-label="Food near you" className="space-y-3">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h2 className="font-display text-xl font-semibold">Food near you</h2>
+            <h2 className="font-display text-lg font-semibold sm:text-xl">Food near you</h2>
             <p className="text-sm text-muted-foreground">Only food that can reach you before it spoils, best match first.</p>
           </div>
         </div>
@@ -94,7 +94,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
 
       <section aria-label="My needs" className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold">My needs</h2>
+          <h2 className="font-display text-lg font-semibold sm:text-xl">My needs</h2>
           <Link href="/dashboard/needs/new" className={cn(buttonVariants({ variant: "outline" }), "h-10 gap-1.5 rounded-xl")}><Plus className="size-4" aria-hidden /> Post a need</Link>
         </div>
         {!needs.data?.length ? (

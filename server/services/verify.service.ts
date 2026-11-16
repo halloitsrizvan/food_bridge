@@ -8,7 +8,6 @@ export async function verifyClaim(id: string) {
   return {
     id: c.id,
     giverName: c.giver.name,
-    giverTier: c.giver.tier,
     area: c.giver.area,
     meals: c.mealsDelivered ?? 0,
     completedAt: c.completedAt?.toISOString() ?? null,

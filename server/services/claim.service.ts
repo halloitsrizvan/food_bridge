@@ -5,7 +5,7 @@ import { prisma } from "../lib/prisma";
 import { approx } from "../logic/geo";
 import { dietCompatible, feasibility, modeCompatible } from "../logic/match";
 import { deriveOtp, hashOtp, newSalt, verifyOtp } from "../logic/otp";
-import { giverPoints, tierFor } from "../logic/points";
+import { giverPoints } from "../logic/points";
 import { effectiveExpiry } from "../logic/time";
 import { claimRepository, type ClaimFull } from "../repositories/claim.repository";
 import { offerRepository } from "../repositories/offer.repository";
@@ -25,7 +25,6 @@ function party(p: Profile, revealed: boolean): Party {
     name: p.name,
     kind: p.giverKind ?? p.takerKind,
     area: p.area,
-    tier: p.tier,
     trustScore: p.trustScore,
     members: p.members,
     lat: revealed ? p.lat : approx(p.lat),
@@ -278,8 +277,7 @@ export const claimService = {
 
       for (const [accountId, delta] of [[c.giverId, giverPts], [c.takerId, takerPts]] as const) {
         await trustRepository.addLedger(tx, { accountId, claimId: id, delta, reason: "HANDOVER" });
-        const p = await tx.profile.update({ where: { id: accountId }, data: { points: { increment: delta } } });
-        await tx.profile.update({ where: { id: accountId }, data: { tier: tierFor(p.points, cfg) } });
+        await tx.profile.update({ where: { id: accountId }, data: { points: { increment: delta } } });
       }
       return { c, giverPts, takerPts, meals };
     });

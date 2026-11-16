@@ -14,7 +14,7 @@ export function NotificationsList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-3xl font-semibold">Notifications</h1>
+        <h1 className="font-display text-2xl font-semibold sm:text-3xl">Notifications</h1>
         <Button variant="outline" className="h-10 gap-1.5 rounded-xl" disabled={!data?.unread} onClick={() => mark.mutate(undefined)}>
           <CheckCheck className="size-4" aria-hidden /> Mark all read
         </Button>

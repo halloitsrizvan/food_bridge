@@ -4,13 +4,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState, ErrorState, PageSkeleton } from "@/components/shared/states";
-import { TierBadge } from "@/components/shared/badges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useGovUsers, useSetUserStatus, type GovUser } from "@/lib/api/hooks";
 import { KIND_LABEL } from "@/lib/format";
-import type { Tier } from "@/lib/schemas/profile";
 import { cn } from "@/lib/utils";
 
 export const STATUS_PILL: Record<string, string> = {
@@ -46,7 +44,7 @@ export function GovUsers() {
         <div className={cn("overflow-x-auto rounded-[20px] border bg-surface shadow-soft", isPlaceholderData && "opacity-60")}>
           <Table>
             <TableHeader>
-              <TableRow><TableHead>Name</TableHead><TableHead>Role</TableHead><TableHead>Area</TableHead><TableHead>Tier</TableHead><TableHead className="text-right">Trust</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Action</TableHead></TableRow>
+              <TableRow><TableHead>Name</TableHead><TableHead>Role</TableHead><TableHead>Area</TableHead><TableHead className="text-right">Trust</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Action</TableHead></TableRow>
             </TableHeader>
             <TableBody>
               {data.items.map((u) => (
@@ -54,7 +52,6 @@ export function GovUsers() {
                   <TableCell><p className="font-medium">{u.name}</p><p className="text-xs text-muted-foreground">{u.email}</p></TableCell>
                   <TableCell>{u.role === "GOV" ? "Government" : (KIND_LABEL[u.kind ?? ""] ?? u.role)}</TableCell>
                   <TableCell>{u.area || "-"}</TableCell>
-                  <TableCell>{u.role !== "GOV" && <TierBadge tier={u.tier as Tier} />}</TableCell>
                   <TableCell className="text-right tabular">{u.trustScore}</TableCell>
                   <TableCell><span className={cn("rounded-full px-2 py-0.5 text-xs font-semibold", STATUS_PILL[u.status])}>{u.status.toLowerCase()}</span></TableCell>
                   <TableCell className="text-right">

@@ -4,7 +4,7 @@ import { levelFor, needsGovAlert, radiusFor, urgency } from "@/server/logic/esca
 import { approx, boundingBox, haversineKm, parseLatLng, travelMinutes } from "@/server/logic/geo";
 import { feasibility, matchScore, rankCandidates, dietCompatible, modeCompatible } from "@/server/logic/match";
 import { deriveOtp, hashOtp, verifyOtp } from "@/server/logic/otp";
-import { giverPoints, nextTier, reviewBonus, tierFor } from "@/server/logic/points";
+import { giverPoints, reviewBonus } from "@/server/logic/points";
 import { effectiveExpiry, elapsedFraction, isExpired, safeUntil } from "@/server/logic/time";
 import { complaintWeight, shouldSuspend, trustScore } from "@/server/logic/trust";
 
@@ -118,17 +118,7 @@ describe("rankCandidates", () => {
   });
 });
 
-describe("points / tiers", () => {
-  it("tier thresholds", () => {
-    expect(tierFor(0, cfg)).toBe("BRONZE");
-    expect(tierFor(200, cfg)).toBe("SILVER");
-    expect(tierFor(600, cfg)).toBe("GOLD");
-    expect(tierFor(1500, cfg)).toBe("PLATINUM");
-  });
-  it("next tier progress", () => {
-    expect(nextTier(100, cfg)).toMatchObject({ tier: "SILVER", at: 200, progress: 0.5 });
-    expect(nextTier(2000, cfg)).toBeNull();
-  });
+describe("points", () => {
   it("giver points: 10 + min(meals,50) + fast bonus", () => {
     expect(giverPoints(20, 10, cfg)).toBe(35);
     expect(giverPoints(200, 45, cfg)).toBe(60);

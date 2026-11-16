@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { TierSchema } from "./profile";
 
 export const CategorySchema = z.enum(["COOKED", "PACKAGED", "RAW"]);
 export const DietSchema = z.enum(["VEG", "NON_VEG", "BOTH"]);
@@ -120,7 +119,6 @@ export const PublicOfferSchema = z
     lng: z.number().nullable(),
     giverName: z.string(),
     giverKind: z.string().nullable(),
-    giverTier: TierSchema,
     giverTrust: z.number(),
     /** km from the visitor, only when lat/lng were sent */
     distanceKm: z.number().optional(),

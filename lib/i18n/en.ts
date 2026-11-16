@@ -10,7 +10,6 @@ export const en = {
     liveTitle: "Live near you",
     liveSub: "Fresh posts, ticking down. Claim before the clock runs out.",
     how: "How it works",
-    trust: "Trust, tiers and recognition",
     impact: "Impact so far",
     faq: "Questions",
   },

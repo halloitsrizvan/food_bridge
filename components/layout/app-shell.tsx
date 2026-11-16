@@ -14,7 +14,7 @@ import { useAppeal } from "@/lib/api/hooks";
 import type { ProfileDTO } from "@/lib/schemas/profile";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { Avatar, TierBadge } from "@/components/shared/badges";
+import { Avatar } from "@/components/shared/badges";
 import { Logo } from "./logo";
 import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
@@ -117,15 +117,12 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
               </p>
             </div>
           </div>
-          <div className="mt-2 flex items-center justify-between">
-            <TierBadge tier={user.tier} />
-            <span className="tabular text-xs text-muted-foreground">{user.points} pts</span>
-          </div>
+          <p className="mt-2 text-xs tabular text-muted-foreground">{user.points} points</p>
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-1 border-b bg-background/90 px-3 backdrop-blur md:px-6">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-0.5 border-b bg-background/90 px-2 backdrop-blur sm:gap-1 sm:px-3 md:px-6">
           <Link href="/dashboard" className="md:hidden">
             <Logo />
           </Link>
@@ -147,7 +144,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
           </div>
         </header>
         <AppealBanner status={user.status} />
-        <main id="main" className="flex-1 px-4 pb-28 pt-6 md:px-8 md:pb-10">
+        <main id="main" className="min-w-0 flex-1 px-3 pb-28 pt-4 sm:px-4 sm:pt-6 md:px-8 md:pb-10">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>
       </div>

@@ -26,7 +26,6 @@ export const impactService = {
       name: g.name,
       kind: g.giverKind,
       area: g.area,
-      tier: g.tier,
       points: g.points,
       meals: meals.get(g.id) ?? 0,
     }));

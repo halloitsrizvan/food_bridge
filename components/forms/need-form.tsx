@@ -61,7 +61,7 @@ export function NeedForm() {
   const err = (k: string) => errs[k] && <p role="alert" className="text-sm text-clay">{errs[k]}</p>;
 
   return (
-    <form onSubmit={submit} className="max-w-2xl space-y-6 rounded-[20px] border bg-surface p-6 shadow-soft" noValidate>
+    <form onSubmit={submit} className="max-w-2xl space-y-6 rounded-[20px] border bg-surface p-4 shadow-soft sm:p-6" noValidate>
       <div className="space-y-1.5">
         <Label htmlFor="ntitle">What do you need?</Label>
         <Input id="ntitle" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Dinner for 40 residents" maxLength={80} className="h-11 rounded-xl" aria-invalid={!!errs.title} />

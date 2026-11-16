@@ -1,7 +1,7 @@
 import type { Profile } from "@prisma/client";
 import { AppError } from "../lib/errors";
 import { prisma } from "../lib/prisma";
-import { tierFor, reviewBonus } from "../logic/points";
+import { reviewBonus } from "../logic/points";
 import { complaintWeight, shouldSuspend, trustScore } from "../logic/trust";
 import { claimRepository } from "../repositories/claim.repository";
 import { profileRepository } from "../repositories/profile.repository";
@@ -44,7 +44,6 @@ export const trustService = {
     await trustRepository.createReview({ claimId, fromId: user.id, toId: otherId, rating: input.rating, comment: input.comment });
 
     // Review bonus = second ledger row on the reviewed account: base * (0.8 + 0.1*rating) - base
-    const cfg = await configService.get();
     const base = await prisma.pointLedger.findFirst({ where: { claimId, accountId: otherId, reason: "HANDOVER" } });
     if (base) {
       const bonus = reviewBonus(base.delta, input.rating);
@@ -53,7 +52,7 @@ export const trustService = {
           await trustRepository.addLedger(tx, { accountId: otherId, claimId, delta: bonus, reason: "REVIEW_BONUS" });
           const p = await tx.profile.update({ where: { id: otherId }, data: { points: { increment: bonus } } });
           const pts = Math.max(0, p.points);
-          await tx.profile.update({ where: { id: otherId }, data: { points: pts, tier: tierFor(pts, cfg) } });
+          await tx.profile.update({ where: { id: otherId }, data: { points: pts } });
         });
       }
     }

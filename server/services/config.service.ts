@@ -16,7 +16,6 @@ export const ConfigPatchSchema = z
     points: z
       .object({ base: z.number().int().min(0), mealCap: z.number().int().min(0), fastBonus: z.number().int().min(0), fastWithinMin: z.number().int().min(1), takerConfirm: z.number().int().min(0) })
       .partial(),
-    tiers: z.object({ SILVER: z.number().int().min(1), GOLD: z.number().int().min(1), PLATINUM: z.number().int().min(1) }).partial(),
     suspension: z.object({ weightThreshold: z.number().min(0.5).max(50), windowDays: z.number().int().min(1).max(365) }).partial(),
     impact: z.object({ kgPerMeal: z.number().min(0.05).max(5), co2PerKg: z.number().min(0.1).max(20) }).partial(),
   })
@@ -40,7 +39,7 @@ export const configService = {
     const current = await this.get();
     const next = mergeConfig({ ...current, ...patch } as Record<string, unknown>);
     // keep nested sections merged, not replaced
-    for (const k of ["safeHours", "points", "tiers", "suspension", "impact"] as const) {
+    for (const k of ["safeHours", "points", "suspension", "impact"] as const) {
       if (patch[k]) (next as Record<string, unknown>)[k] = { ...current[k], ...patch[k] };
     }
     await trustRepository.setConfig(next as never);

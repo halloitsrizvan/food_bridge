@@ -30,7 +30,6 @@ export function toPublicOffer(o: OfferWithGiver): PublicOffer {
     lng: approx(o.giver.lng),
     giverName: o.giver.name,
     giverKind: o.giver.giverKind,
-    giverTier: o.giver.tier,
     giverTrust: o.giver.trustScore,
   };
 }

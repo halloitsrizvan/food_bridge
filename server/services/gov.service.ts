@@ -69,7 +69,7 @@ export const govService = {
       total, page, limit,
       items: rows.map((p) => ({
         id: p.id, name: p.name, email: p.email, phone: p.phone, role: p.role, kind: p.giverKind ?? p.takerKind, area: p.area,
-        status: p.status, points: p.points, tier: p.tier, trustScore: p.trustScore, onboarded: p.onboarded, createdAt: p.createdAt.toISOString(),
+        status: p.status, points: p.points, trustScore: p.trustScore, onboarded: p.onboarded, createdAt: p.createdAt.toISOString(),
       })),
     };
   },

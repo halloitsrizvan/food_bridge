@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MapView } from "@/components/map/map-view";
-import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip, TierBadge } from "@/components/shared/badges";
+import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip } from "@/components/shared/badges";
 import { BigCountdown } from "@/components/shared/countdown-ring";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { WhyMatch } from "@/components/shared/match-breakdown";
@@ -48,12 +48,12 @@ export function OfferPage({ id }: { id: string }) {
       </header>
 
       <div className="grid gap-5 lg:grid-cols-[18rem_1fr]">
-        <section className="flex flex-col items-center gap-4 rounded-[20px] border bg-surface p-6 shadow-soft">
+        <section className="flex flex-col items-center gap-4 rounded-[20px] border bg-surface p-4 shadow-soft sm:p-6">
           <BigCountdown expiresAt={o.expiresAt} startAt={o.createdAt} caption="Safe until" />
           {isOwner && <StatusStepper className="mt-2" steps={OFFER_STEPS} current={offerStep(o.status)} />}
         </section>
 
-        <section className="space-y-4 rounded-[20px] border bg-surface p-5 shadow-soft">
+        <section className="space-y-4 rounded-[20px] border bg-surface p-4 shadow-soft sm:p-5">
           {o.description && <p className="text-sm text-muted-foreground">{o.description}</p>}
           <div className="flex items-center gap-3 rounded-2xl bg-muted p-3">
             <Avatar name={o.giverName} kind={o.giverKind} size={40} />
@@ -61,7 +61,6 @@ export function OfferPage({ id }: { id: string }) {
               <p className="text-sm font-semibold">{o.giverName}</p>
               <p className="text-xs text-muted-foreground">{kindLabel(o.giverKind)} · trust {o.giverTrust}</p>
             </div>
-            <TierBadge tier={o.giverTier} />
           </div>
           {o.lat != null && o.lng != null && <MapView height={200} center={[o.lat, o.lng]} zoom={13} markers={[{ id: "a", lat: o.lat, lng: o.lng, color: "#088178", label: `Around ${o.area}` }]} />}
 
@@ -89,7 +88,7 @@ export function OfferPage({ id }: { id: string }) {
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {suggestions.data.map((s) => (
-                  <article key={s.takerId} className="space-y-3 rounded-[20px] border bg-surface p-5 shadow-soft">
+                  <article key={s.takerId} className="space-y-3 rounded-[20px] border bg-surface p-4 shadow-soft sm:p-5">
                     <div className="flex items-center gap-3">
                       <Avatar name={s.name} kind={s.kind} />
                       <div className="min-w-0 flex-1">

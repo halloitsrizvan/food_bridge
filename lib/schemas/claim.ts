@@ -1,13 +1,11 @@
 // Shape returned by GET /claims/{id} and GET /me/claims (plain TS types, shared with the UI).
 import type { Category, ClaimStatus, Diet, MatchInfo, Mode, OfferStatus } from "./food";
-import type { Tier } from "./profile";
 
 export type Party = {
   id: string;
   name: string;
   kind: string | null;
   area: string;
-  tier: Tier;
   trustScore: number;
   members: number | null;
   /** Approximate (2 decimals) until the claim is ACCEPTED, exact afterwards. */

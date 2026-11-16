@@ -99,8 +99,8 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
   const err = (k: string) => errs[k] && <p role="alert" className="text-sm text-clay">{errs[k]}</p>;
 
   return (
-    <form onSubmit={submit} className="grid gap-6 lg:grid-cols-[1fr_20rem]" noValidate>
-      <div className="space-y-6 rounded-[20px] border bg-surface p-6 shadow-soft">
+    <form onSubmit={submit} className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_20rem]" noValidate>
+      <div className="min-w-0 space-y-6 rounded-[20px] border bg-surface p-4 shadow-soft sm:p-6">
         <div className="space-y-1.5">
           <Label htmlFor="title">What is it?</Label>
           <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Veg biryani trays" maxLength={80} className="h-11 rounded-xl" aria-invalid={!!errs.title} />

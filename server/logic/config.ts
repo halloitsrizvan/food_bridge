@@ -8,7 +8,6 @@ export type Config = {
   bufferMin: number;
   holdMinutes: number;
   points: { base: number; mealCap: number; fastBonus: number; fastWithinMin: number; takerConfirm: number };
-  tiers: { SILVER: number; GOLD: number; PLATINUM: number };
   suspension: { weightThreshold: number; windowDays: number };
   impact: { kgPerMeal: number; co2PerKg: number };
 };
@@ -22,7 +21,6 @@ export const DEFAULT_CONFIG: Config = {
   bufferMin: 10,
   holdMinutes: 15,
   points: { base: 10, mealCap: 50, fastBonus: 5, fastWithinMin: 30, takerConfirm: 5 },
-  tiers: { SILVER: 200, GOLD: 600, PLATINUM: 1500 },
   suspension: { weightThreshold: 3, windowDays: 30 },
   impact: { kgPerMeal: 0.4, co2PerKg: 2.5 },
 };

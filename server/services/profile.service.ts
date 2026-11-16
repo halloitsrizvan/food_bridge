@@ -1,19 +1,16 @@
 // Services hold business rules; they only talk to repositories and pure logic.
 import type { Profile } from "@prisma/client";
 import { parseLatLng } from "../logic/geo";
-import { nextTier } from "../logic/points";
 import type { Onboard, ProfileDTO, Signup } from "@/lib/schemas/profile";
 import { AppError } from "../lib/errors";
 import { createSupabaseAdminClient } from "../lib/supabase-admin";
 import { profileRepository } from "../repositories/profile.repository";
-import { configService } from "./config.service";
 
 const GIVER_KINDS = ["RESTAURANT", "CATERER", "HOUSEHOLD", "EVENT"] as const;
 const TAKER_KINDS = ["INSTITUTION", "CHARITY", "HOUSE"] as const;
 
 export const profileService = {
   async toDTO(p: Profile): Promise<ProfileDTO> {
-    const cfg = await configService.get();
     return {
       id: p.id,
       role: p.role,
@@ -33,8 +30,6 @@ export const profileService = {
       status: p.status,
       points: p.points,
       trustScore: p.trustScore,
-      tier: p.tier,
-      nextTier: nextTier(p.points, cfg),
       createdAt: p.createdAt.toISOString(),
     };
   },

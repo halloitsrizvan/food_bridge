@@ -5,8 +5,6 @@ export type Role = z.infer<typeof RoleSchema>;
 export const GiverKindSchema = z.enum(["RESTAURANT", "CATERER", "HOUSEHOLD", "EVENT"]);
 export const TakerKindSchema = z.enum(["INSTITUTION", "CHARITY", "HOUSE"]);
 export const AccountStatusSchema = z.enum(["ACTIVE", "SUSPENDED", "APPEALING"]);
-export const TierSchema = z.enum(["BRONZE", "SILVER", "GOLD", "PLATINUM"]);
-export type Tier = z.infer<typeof TierSchema>;
 export type AccountStatus = z.infer<typeof AccountStatusSchema>;
 
 const phone = z
@@ -60,8 +58,6 @@ export const ProfileSchema = z
     status: AccountStatusSchema,
     points: z.number(),
     trustScore: z.number(),
-    tier: TierSchema,
-    nextTier: z.object({ tier: TierSchema, at: z.number(), progress: z.number() }).nullable(),
     createdAt: z.string(),
   })
   .meta({ id: "Profile" });

@@ -5,14 +5,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ClaimCard } from "@/components/claims/claim-card";
-import { Avatar, DietBadge, kindLabel, TierBadge } from "@/components/shared/badges";
+import { Avatar, DietBadge, kindLabel } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
 import { WhyMatch } from "@/components/shared/match-breakdown";
 import { EmptyState, ErrorState, PageSkeleton } from "@/components/shared/states";
 import { OFFER_STEPS, offerStep, StatusStepper } from "@/components/shared/status-stepper";
 import { TrustGauge } from "@/components/shared/trust-gauge";
 import { buttonVariants, Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { useContactNeed, useMyClaims, useMyOffers, useNeedsNear } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
@@ -21,9 +20,9 @@ import { cn } from "@/lib/utils";
 
 export function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
-    <div className="rounded-[20px] border bg-surface p-4 shadow-soft">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 font-display text-3xl font-semibold tabular">{value}</p>
+    <div className="min-w-0 rounded-[20px] border bg-surface p-3 shadow-soft sm:p-4">
+      <p className="truncate text-[11px] font-medium uppercase tracking-wide text-muted-foreground sm:text-xs">{label}</p>
+      <p className="mt-1 font-display text-2xl font-semibold tabular sm:text-3xl">{value}</p>
       {sub && <div className="mt-1 text-xs text-muted-foreground">{sub}</div>}
     </div>
   );
@@ -48,28 +47,21 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-3xl font-semibold">Hello, {me.name}</h1>
+          <h1 className="font-display text-2xl font-semibold sm:text-3xl">Hello, {me.name}</h1>
           <p className="flex items-center gap-2 text-muted-foreground">
-            {kindLabel(me.giverKind)} · {me.area} <TierBadge tier={me.tier} />
+            {kindLabel(me.giverKind)} · {me.area}
           </p>
         </div>
-        <Link href="/dashboard/post" className={cn(buttonVariants({ size: "lg" }), "h-14 gap-2 rounded-2xl px-7 text-base shadow-lift")}>
+        <Link href="/dashboard/post" className={cn(buttonVariants({ size: "lg" }), "h-12 w-full gap-2 px-7 text-base shadow-lift sm:h-14 sm:w-auto")}>
           <Plus className="size-5" aria-hidden /> Post surplus food
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat label="Meals shared" value={meals} sub={`${done.length} handovers`} />
-        <Stat label="Points" value={me.points} sub={
-          me.nextTier ? (
-            <div className="space-y-1">
-              <Progress value={Math.round(me.nextTier.progress * 100)} aria-label={`Progress to ${me.nextTier.tier}`} />
-              <span>{me.nextTier.at - me.points} to {me.nextTier.tier.toLowerCase()}</span>
-            </div>
-          ) : "Top tier reached"
-        } />
+        <Stat label="Points" value={me.points} sub="earned from handovers" />
         <div className="flex items-center justify-center rounded-[20px] border bg-surface p-4 shadow-soft">
           <TrustGauge score={me.trustScore} />
         </div>
@@ -78,13 +70,13 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
 
       {inbox.length > 0 && (
         <section aria-label="Claims inbox" className="space-y-3">
-          <h2 className="font-display text-xl font-semibold">Claims inbox</h2>
+          <h2 className="font-display text-lg font-semibold sm:text-xl">Claims inbox</h2>
           <div className="grid gap-4 md:grid-cols-2">{inbox.map((c) => <ClaimCard key={c.id} claim={c} />)}</div>
         </section>
       )}
 
       <section aria-label="My posts" className="space-y-3">
-        <h2 className="font-display text-xl font-semibold">My posts</h2>
+        <h2 className="font-display text-lg font-semibold sm:text-xl">My posts</h2>
         {live.length === 0 ? (
           <EmptyState title="Nothing posted right now" description="Post surplus food and we alert the nearest receivers who can reach you in time." action={<Link href="/dashboard/post" className={cn(buttonVariants(), "rounded-xl")}>Post food</Link>} />
         ) : (
@@ -110,7 +102,7 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
       </section>
 
       <section aria-label="Needs near you" className="space-y-3">
-        <h2 className="font-display text-xl font-semibold">Needs near you</h2>
+        <h2 className="font-display text-lg font-semibold sm:text-xl">Needs near you</h2>
         {needs.isPending ? (
           <PageSkeleton />
         ) : !needs.data?.length ? (

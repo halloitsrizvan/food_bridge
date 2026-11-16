@@ -7,7 +7,7 @@ import { formatLeft } from "@/lib/format";
 import type { OfferWithMatch } from "@/lib/schemas/food";
 import { useNow } from "@/lib/use-now";
 import { cn } from "@/lib/utils";
-import { DietBadge, kindLabel, ModeChip, TierBadge } from "./badges";
+import { DietBadge, kindLabel, ModeChip } from "./badges";
 import { CountdownRing } from "./countdown-ring";
 
 type Props = {
@@ -74,10 +74,7 @@ export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel = "C
 
       <div className="space-y-2 px-1.5">
         <h3 className="line-clamp-1 font-display text-base font-semibold">{offer.title}</h3>
-        <div className="flex items-center justify-between gap-2">
-          <Stars trust={offer.giverTrust} />
-          <TierBadge tier={offer.giverTier} />
-        </div>
+        <Stars trust={offer.giverTrust} />
         <p className="flex items-baseline gap-2">
           <span className="font-display text-xl font-semibold tabular text-primary">{offer.quantityMeals}</span>
           <span className="text-sm text-muted-foreground">meals</span>

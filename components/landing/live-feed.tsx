@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MapView } from "@/components/map/map-view";
-import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip, TierBadge } from "@/components/shared/badges";
+import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip } from "@/components/shared/badges";
 import { BigCountdown } from "@/components/shared/countdown-ring";
 import { PostCard } from "@/components/shared/post-card";
 import { CardSkeletons, EmptyState, ErrorState } from "@/components/shared/states";
@@ -211,7 +211,6 @@ function OfferDetail({ offer, onClose, onContact, role }: { offer: PublicOffer |
                 <p className="text-sm font-semibold">{offer.giverName}</p>
                 <p className="text-xs text-muted-foreground">{kindLabel(offer.giverKind)} · trust {offer.giverTrust}</p>
               </div>
-              <TierBadge tier={offer.giverTier} />
             </div>
             {offer.lat != null && offer.lng != null && (
               <div>

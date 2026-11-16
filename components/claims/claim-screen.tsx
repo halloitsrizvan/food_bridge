@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MapView } from "@/components/map/map-view";
-import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip, TierBadge } from "@/components/shared/badges";
+import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip } from "@/components/shared/badges";
 import { BigCountdown } from "@/components/shared/countdown-ring";
 import { MatchBreakdown } from "@/components/shared/match-breakdown";
 import { ErrorState, PageSkeleton } from "@/components/shared/states";
@@ -193,7 +193,7 @@ export function ClaimScreen({ id }: { id: string }) {
       <header className="flex flex-wrap items-start gap-3">
         <CategoryChip category={c.offer.category} className="size-12" />
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-2xl font-semibold sm:text-3xl">{c.offer.title}</h1>
+          <h1 className="break-words font-display text-xl font-semibold sm:text-3xl">{c.offer.title}</h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", STATUS_STYLE[c.status])}>{STATUS_LABEL[c.status]}</span>
             <DietBadge diet={c.offer.diet} />
@@ -203,13 +203,13 @@ export function ClaimScreen({ id }: { id: string }) {
         </div>
       </header>
 
-      <div className="rounded-[20px] border bg-surface p-5 shadow-soft">
+      <div className="rounded-[20px] border bg-surface p-4 shadow-soft sm:p-5">
         <StatusStepper steps={STEPS} current={stepOf(c)} failed={failed} />
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[17rem_1fr_1.15fr]">
         {/* LEFT: countdown */}
-        <section aria-label="Time left" className="flex flex-col items-center justify-center rounded-[20px] border bg-surface p-6 shadow-soft">
+        <section aria-label="Time left" className="flex flex-col items-center justify-center rounded-[20px] border bg-surface p-4 shadow-soft sm:p-6">
           {c.status === "COMPLETED" || failed ? (
             <div className="py-8 text-center">
               <p className="font-display text-xl font-semibold">{c.status === "COMPLETED" ? "Delivered" : failed}</p>
@@ -221,13 +221,13 @@ export function ClaimScreen({ id }: { id: string }) {
         </section>
 
         {/* CENTER: why this match */}
-        <section aria-label="Why this match" className="rounded-[20px] border bg-surface p-6 shadow-soft">
+        <section aria-label="Why this match" className="rounded-[20px] border bg-surface p-4 shadow-soft sm:p-6">
           <h2 className="mb-4 font-display text-lg font-semibold">Why this match</h2>
           {c.match ? <MatchBreakdown match={c.match} /> : <p className="text-sm text-muted-foreground">No score is available for this request.</p>}
         </section>
 
         {/* RIGHT: map + details */}
-        <section aria-label="Route" className="space-y-4 rounded-[20px] border bg-surface p-5 shadow-soft">
+        <section aria-label="Route" className="space-y-4 rounded-[20px] border bg-surface p-4 shadow-soft sm:p-5">
           <MapView height={220} markers={mapMarkers} line={line} fit />
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">{c.distanceKm != null ? <><b className="tabular text-foreground">{c.distanceKm} km</b> apart</> : "Distance unavailable"}</span>
@@ -242,14 +242,13 @@ export function ClaimScreen({ id }: { id: string }) {
                 {other.members ? ` · ${other.members} members` : ""}
               </p>
             </div>
-            <TierBadge tier={other.tier} />
           </div>
           {c.revealed ? <Contact p={other} /> : <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">Exact address and phone are shared once the {c.viewerRole === "GIVER" ? "receiver" : "giver"} and you have both agreed. Until then only the area is visible.</p>}
         </section>
       </div>
 
       {/* Actions */}
-      <section className="space-y-4 rounded-[20px] border bg-surface p-5 shadow-soft" aria-label="Actions" aria-live="polite">
+      <section className="space-y-4 rounded-[20px] border bg-surface p-4 shadow-soft sm:p-5" aria-label="Actions" aria-live="polite">
         {c.can.accept && (
           <div className="space-y-3">
             <p className="text-sm">

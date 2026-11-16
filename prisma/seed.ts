@@ -7,7 +7,6 @@ import { PrismaClient, type Diet, type FoodCategory, type HandoverMode } from "@
 import { createClient } from "@supabase/supabase-js";
 import { DEFAULT_CONFIG } from "../server/logic/config";
 import { deriveOtp, hashOtp } from "../server/logic/otp";
-import { tierFor } from "../server/logic/points";
 import { safeUntil } from "../server/logic/time";
 
 const prisma = new PrismaClient();
@@ -77,7 +76,7 @@ async function main() {
   for (const g of GIVERS) {
     const id = await ensureAuthUser(g.email, "GIVER");
     giverIds[g.email] = id;
-    const data = { role: "GIVER" as const, giverKind: g.kind, name: g.name, email: g.email, phone: "+9198470" + String(10000 + GIVERS.indexOf(g)), address: g.address, area: g.area, lat: g.lat, lng: g.lng, onboarded: true, points: g.points, trustScore: g.trust, tier: tierFor(g.points, DEFAULT_CONFIG) };
+    const data = { role: "GIVER" as const, giverKind: g.kind, name: g.name, email: g.email, phone: "+9198470" + String(10000 + GIVERS.indexOf(g)), address: g.address, area: g.area, lat: g.lat, lng: g.lng, onboarded: true, points: g.points, trustScore: g.trust };
     await prisma.profile.upsert({ where: { id }, update: data, create: { id, ...data } });
   }
   const takerIds: Record<string, string> = {};

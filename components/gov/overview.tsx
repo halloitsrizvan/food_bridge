@@ -1,7 +1,6 @@
 "use client";
 
 import { Cloud, Gavel, MessageSquareWarning, Radio, Scale, Soup, Timer, UserX } from "lucide-react";
-import { TierBadge } from "@/components/shared/badges";
 import { CountUp } from "@/components/shared/count-up";
 import { ErrorState, PageSkeleton } from "@/components/shared/states";
 import { useGovOverview } from "@/lib/api/hooks";
@@ -81,7 +80,6 @@ export function GovOverview() {
                     <p className="truncate text-sm font-medium">{g.name}</p>
                     <p className="text-xs text-muted-foreground">{g.meals} meals · {g.points} pts</p>
                   </div>
-                  <TierBadge tier={g.tier} />
                 </li>
               ))}
             </ol>

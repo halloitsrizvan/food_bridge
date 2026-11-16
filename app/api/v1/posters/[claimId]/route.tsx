@@ -6,8 +6,6 @@ import { route } from "@/server/lib/route";
 import { claimRepository } from "@/server/repositories/claim.repository";
 import { prisma } from "@/server/lib/prisma";
 
-const TIER_COLOR = { BRONZE: "#B9772E", SILVER: "#8E9AA3", GOLD: "#E0A21B", PLATINUM: "#3C8C94" } as const;
-
 // PNG certificate. Only the completed claim's giver, or gov, can render it.
 export const GET = route({ auth: ["GIVER", "GOV"] }, async ({ user, params, req }) => {
   const id = z.uuid().parse(params.claimId);
@@ -18,7 +16,6 @@ export const GET = route({ auth: ["GIVER", "GOV"] }, async ({ user, params, req 
   const ledger = await prisma.pointLedger.findMany({ where: { claimId: id, accountId: claim.giverId } });
   const points = ledger.reduce((s, l) => s + l.delta, 0);
   const meals = claim.mealsDelivered ?? 0;
-  const tier = claim.giver.tier;
 
   return new ImageResponse(
     (
@@ -38,7 +35,6 @@ export const GET = route({ auth: ["GIVER", "GOV"] }, async ({ user, params, req 
           </div>
           <div style={{ display: "flex", marginTop: 40 }}>
             <div style={{ display: "flex", padding: "14px 26px", borderRadius: 999, background: "#F2A33A", fontSize: 28, fontWeight: 700, marginRight: 18 }}>+{points} points</div>
-            <div style={{ display: "flex", padding: "14px 26px", borderRadius: 999, background: TIER_COLOR[tier], color: "white", fontSize: 28, fontWeight: 700 }}>{tier}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>

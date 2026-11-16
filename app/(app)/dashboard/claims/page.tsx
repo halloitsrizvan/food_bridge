@@ -8,7 +8,7 @@ export default function ClaimsPage() {
   const { data, isPending, isError, error, refetch } = useMyClaims();
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl font-semibold">Handovers</h1>
+      <h1 className="font-display text-2xl font-semibold sm:text-3xl">Handovers</h1>
       {isPending ? <PageSkeleton /> : isError ? <ErrorState message={error.message} onRetry={() => refetch()} /> : data.length === 0 ? (
         <EmptyState art="inbox" title="No handovers yet" description="When you contact a giver or someone contacts you, it shows up here." />
       ) : (

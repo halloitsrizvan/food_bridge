@@ -17,7 +17,6 @@ type Cfg = {
   bufferMin: number;
   holdMinutes: number;
   points: { base: number; mealCap: number; fastBonus: number; fastWithinMin: number; takerConfirm: number };
-  tiers: { SILVER: number; GOLD: number; PLATINUM: number };
   suspension: { weightThreshold: number; windowDays: number };
   impact: { kgPerMeal: number; co2PerKg: number };
 };
@@ -60,15 +59,12 @@ function Editor({ initial }: { initial: Cfg }) {
         <Num label="Alert government at (fraction)" step={0.05} value={c.govAlertAt} onChange={(n) => up("govAlertAt", n)} />
         <Num label="Reservation hold (minutes)" value={c.holdMinutes} onChange={(n) => up("holdMinutes", n)} />
       </Group>
-      <Group title="Points and tiers">
+      <Group title="Points">
         <Num label="Base points per handover" value={c.points.base} onChange={(n) => up("points", { ...c.points, base: n })} />
         <Num label="Meal points cap" value={c.points.mealCap} onChange={(n) => up("points", { ...c.points, mealCap: n })} />
         <Num label="Fast handover bonus" value={c.points.fastBonus} onChange={(n) => up("points", { ...c.points, fastBonus: n })} />
         <Num label="Fast within (min)" value={c.points.fastWithinMin} onChange={(n) => up("points", { ...c.points, fastWithinMin: n })} />
         <Num label="Receiver confirmation points" value={c.points.takerConfirm} onChange={(n) => up("points", { ...c.points, takerConfirm: n })} />
-        <Num label="Silver at" value={c.tiers.SILVER} onChange={(n) => up("tiers", { ...c.tiers, SILVER: n })} />
-        <Num label="Gold at" value={c.tiers.GOLD} onChange={(n) => up("tiers", { ...c.tiers, GOLD: n })} />
-        <Num label="Platinum at" value={c.tiers.PLATINUM} onChange={(n) => up("tiers", { ...c.tiers, PLATINUM: n })} />
       </Group>
       <Group title="Suspension and impact">
         <Num label="Suspend at weighted complaints" step={0.5} value={c.suspension.weightThreshold} onChange={(n) => up("suspension", { ...c.suspension, weightThreshold: n })} />

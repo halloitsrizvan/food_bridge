@@ -9,7 +9,7 @@ import { api, ApiClientError } from "./client";
 
 export type Page<T> = { items: T[]; total: number; page: number; limit: number; pages: number };
 export type Impact = { meals: number; kg: number; co2Kg: number; handovers: number; activePosts: number; avgMatchMinutes: number | null };
-export type LeaderRow = { rank: number; name: string; kind: string | null; area: string; tier: ProfileDTO["tier"]; points: number; meals: number };
+export type LeaderRow = { rank: number; name: string; kind: string | null; area: string; points: number; meals: number };
 export type Notif = { id: string; type: string; title: string; body: string; link: string; readAt: string | null; createdAt: string };
 export type MyOffer = PublicOffer & { claimId: string | null; claimStatus: string | null };
 export type TakerSuggestion = { takerId: string; name: string; kind: string | null; members: number | null; area: string; lat: number | null; lng: number | null; match: MatchInfo; radiusKm: number };
@@ -118,7 +118,7 @@ export type GovMap = {
   offers: { id: string; title: string; meals: number; status: string; area: string; giver: string; lat: number; lng: number; expiresAt: string; unmatched: boolean }[];
   needs: { id: string; title: string; meals: number; area: string; taker: string; lat: number; lng: number; neededBy: string }[];
 };
-export type GovUser = { id: string; name: string; email: string; phone: string; role: string; kind: string | null; area: string; status: string; points: number; tier: string; trustScore: number; onboarded: boolean; createdAt: string };
+export type GovUser = { id: string; name: string; email: string; phone: string; role: string; kind: string | null; area: string; status: string; points: number; trustScore: number; onboarded: boolean; createdAt: string };
 export type GovComplaint = { id: string; reason: string; weight: number; createdAt: string; from: { id: string; name: string }; against: { id: string; name: string; status: string; trustScore: number }; claimId: string; offerTitle: string };
 export type GovAppeal = { id: string; message: string; status: string; createdAt: string; decidedAt: string | null; account: { id: string; name: string; email: string; status: string; trustScore: number } };
 

@@ -74,7 +74,7 @@ Password for **all** seeded accounts: `FoodBridge#2026`
 2. **Taker** `annadanam@…`: dashboard feed ranked by match score ("Reachable in 12 min, 1h 40m left"). Request a post.
 3. **Giver** `paragon.cater@…` (other window): claims inbox shows the request with a hold countdown → Accept → the OTP card appears.
 4. **Claim screen**: countdown ring, "Why this match" six-factor bars, map with both pins and ETA, exact address now revealed.
-5. **Taker** enters the OTP → confetti, giver gets points, tier progress, and a downloadable certificate with a verify QR (`/verify/{id}`).
+5. **Taker** enters the OTP → confetti, giver gets points and a downloadable certificate with a verify QR (`/verify/{id}`).
 6. **Trust**: taker rates the giver; file two complaints against `grand.cater@…` (already has two) → auto-suspended, banner + "Submit appeal".
 7. **Government** `gov@…`: overview KPIs and chart, live map (red pulsing = unmatched/expiring), users, complaints, approve the appeal, config.
 

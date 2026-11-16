@@ -3,7 +3,6 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { Logo } from "@/components/layout/logo";
-import { TierBadge } from "@/components/shared/badges";
 import { verifyClaim } from "@/server/services/verify.service";
 
 export const metadata = { title: "Verify a handover", robots: { index: false } };
@@ -25,9 +24,6 @@ async function Result({ params }: { params: Promise<{ claimId: string }> }) {
       <BadgeCheck className="mx-auto size-14 text-primary" aria-hidden />
       <h1 className="mt-3 font-display text-2xl font-semibold">Verified handover</h1>
       <p className="mt-4 font-display text-3xl font-semibold text-deep">{v.giverName}</p>
-      <div className="mt-2 flex justify-center">
-        <TierBadge tier={v.giverTier} />
-      </div>
       <p className="mt-4 text-lg">
         delivered <b className="text-primary">{v.meals} meals</b> in {v.area || "Kozhikode"}
       </p>

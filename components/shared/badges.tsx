@@ -1,25 +1,7 @@
-import { Award, Crown, Gem, Leaf, Medal, Salad, Drumstick, Wheat, Package, Carrot, Truck, Footprints, ArrowLeftRight } from "lucide-react";
+import { Leaf, Salad, Drumstick, Wheat, Package, Carrot, Truck, Footprints, ArrowLeftRight } from "lucide-react";
 import { CATEGORY_LABEL, DIET_LABEL, initials, KIND_LABEL, MODE_LABEL } from "@/lib/format";
 import type { Category, Diet, Mode } from "@/lib/schemas/food";
-import type { Tier } from "@/lib/schemas/profile";
 import { cn } from "@/lib/utils";
-
-const TIER = {
-  BRONZE: { label: "Bronze", icon: Medal, cls: "bg-[#B9772E]/12 text-[#9a5f1d] ring-[#B9772E]/30 dark:text-[#e0a766]" },
-  SILVER: { label: "Silver", icon: Award, cls: "bg-slate-400/15 text-slate-600 ring-slate-400/40 dark:text-slate-300" },
-  GOLD: { label: "Gold", icon: Crown, cls: "bg-[#E0A21B]/15 text-[#8a6208] ring-[#E0A21B]/40 dark:text-[#f1c45c]" },
-  PLATINUM: { label: "Platinum", icon: Gem, cls: "bg-[#3C8C94]/15 text-[#216068] ring-[#3C8C94]/40 dark:text-[#7cd0d8]" },
-} as const;
-
-export function TierBadge({ tier, className }: { tier: Tier; className?: string }) {
-  const t = TIER[tier];
-  const Icon = t.icon;
-  return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1", t.cls, className)}>
-      <Icon className="size-3" aria-hidden /> {t.label}
-    </span>
-  );
-}
 
 export function DietBadge({ diet, className }: { diet: Diet; className?: string }) {
   const veg = diet === "VEG";
