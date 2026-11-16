@@ -88,6 +88,7 @@ export const trustService = {
   },
 
   async complain(user: Profile, claimId: string, reason: string) {
+    if (user.role !== "TAKER") throw AppError.forbidden("Only receivers can file complaints");
     const { claim, otherId } = await partyClaim(user, claimId);
     if (await trustRepository.findComplaint(claimId, user.id)) throw AppError.conflict("You already filed a complaint for this claim");
     const cfg = await configService.get();

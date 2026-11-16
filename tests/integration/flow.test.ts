@@ -103,17 +103,21 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
     expect(takerView.revealed).toBe(true);
     expect(takerView.giver.address).toBe("Secret Street 1");
 
-    await expect(claimService.handover(taker, claimId, { otp: accepted.otp === "000000" ? "111111" : "000000", rating: 5 })).rejects.toMatchObject({ status: 400 });
-    const done = await claimService.handover(taker, claimId, { otp: accepted.otp!, rating: 4, comment: "Warm and on time" });
+    await expect(claimService.handover(taker, claimId, { otp: accepted.otp === "000000" ? "111111" : "000000" })).rejects.toMatchObject({ status: 400 });
+    const done = await claimService.handover(taker, claimId, { otp: accepted.otp! });
     expect(done.claim.status).toBe("COMPLETED");
 
-    // the receiver's rating is mandatory and was recorded with the handover; givers are never asked to rate receivers
-    expect(await prisma.review.count({ where: { claimId, fromId: taker.id } })).toBe(1);
-    expect(await trustService.pendingReview(taker.id)).toBeNull();
+    // the review comes AFTER the code is accepted and is mandatory for the receiver (not for the giver)
+    expect(await prisma.review.count({ where: { claimId } })).toBe(0);
     expect(await trustService.pendingReview(giver.id)).toBeNull();
-    await expect(trustService.review(giver, claimId, { rating: 5, comment: "" })).rejects.toMatchObject({ status: 403 });
-    const again = await offerService.create(giver, offerInput()); // the giver is free to post again
-    created.offers.push(again.id);
+    expect(await trustService.pendingReview(taker.id)).toMatchObject({ claimId });
+    const next = await offerService.create(giver, offerInput()); // the giver is free to post again
+    created.offers.push(next.id);
+    await expect(claimService.createFromTaker(taker, next.id)).rejects.toMatchObject({ status: 403, code: "REVIEW_REQUIRED" });
+    await expect(trustService.review(giver, claimId, { rating: 5, comment: "" })).rejects.toMatchObject({ status: 403 }); // givers do not rate receivers
+    await expect(trustService.complain(giver, claimId, "Complaint from the giver should be refused")).rejects.toMatchObject({ status: 403 }); // complaints are receiver-only
+    await trustService.review(taker, claimId, { rating: 4, comment: "Warm and on time" });
+    expect(await trustService.pendingReview(taker.id)).toBeNull();
 
     const [g, t] = await Promise.all([prisma.profile.findUnique({ where: { id: ids.giver } }), prisma.profile.findUnique({ where: { id: ids.taker } })]);
     expect(g!.points).toBeGreaterThanOrEqual(10 + 12 + 5); // base + meals + fast bonus

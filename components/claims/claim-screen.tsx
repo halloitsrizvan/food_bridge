@@ -130,7 +130,7 @@ function Celebration({ claim, open, onClose }: { claim: ClaimView; open: boolean
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-2xl">{isGiver ? "You saved " + claim.mealsDelivered + " meals!" : "Handover complete"}</DialogTitle>
-            <DialogDescription>{isGiver ? `+${claim.pointsEarned ?? 0} points added to your account.` : "Thank you for confirming. Please rate the giver."}</DialogDescription>
+            <DialogDescription>{isGiver ? `+${claim.pointsEarned ?? 0} points added to your account.` : "Thank you for confirming. Next, please rate the giver. A review is required."}</DialogDescription>
           </DialogHeader>
           {isGiver ? (
             // eslint-disable-next-line @next/next/no-img-element

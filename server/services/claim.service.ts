@@ -98,7 +98,7 @@ export async function buildClaimView(c: ClaimFull, viewer: Profile): Promise<Cla
       decline: c.status === "PENDING" && mine && c.holdUntil > now,
       handover: c.status === "ACCEPTED" && isTaker && (c.otpExpiresAt ?? now) > now,
       review: c.status === "COMPLETED" && isTaker && !review,
-      complain: ["ACCEPTED", "COMPLETED", "EXPIRED"].includes(c.status) && (isGiver || isTaker) && !complaint,
+      complain: ["ACCEPTED", "COMPLETED", "EXPIRED"].includes(c.status) && isTaker && !complaint,
     },
     reviewed: !!review,
     complained: !!complaint,
@@ -257,7 +257,7 @@ export const claimService = {
   },
 
   /** Taker enters the giver's OTP at pickup / delivery. Completes the claim and awards points. */
-  async handover(user: Profile, id: string, input: { otp: string; photoUrl?: string; rating: number; comment?: string }) {
+  async handover(user: Profile, id: string, input: { otp: string; photoUrl?: string }) {
     const cfg = await configService.get();
     const done = await prisma.$transaction(async (tx) => {
       await claimRepository.lock(tx, id);
@@ -284,17 +284,11 @@ export const claimService = {
       return { c, giverPts, meals };
     });
 
-    // mandatory review: recorded right after the code is accepted (adds the giver's review bonus)
-    try {
-      await trustService.review(user, id, { rating: input.rating, comment: input.comment ?? "" });
-    } catch (e) {
-      console.error("[handover] review failed", e); // the receiver is then asked again via the pending-review gate
-    }
     await Promise.all([trustService.recompute(done.c.giverId), trustService.recompute(done.c.takerId)]);
     await notificationService.notifyMany(
       [
         { userId: done.c.giverId, type: "HANDOVER_DONE", title: `+${done.giverPts} points`, body: `${done.meals} meals delivered from ${done.c.offer.title}. Your certificate is ready.`, link: `/dashboard/claims/${id}` },
-        { userId: done.c.takerId, type: "HANDOVER_DONE", title: "Handover confirmed", body: `Thanks for confirming. Your rating of ${done.c.giver.name} was recorded.`, link: `/dashboard/claims/${id}` },
+        { userId: done.c.takerId, type: "HANDOVER_DONE", title: "Handover confirmed", body: `Thanks for confirming. Please rate ${done.c.giver.name}: a review is required to continue.`, link: `/dashboard/claims/${id}` },
       ],
       { email: true },
     );

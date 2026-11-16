@@ -80,7 +80,7 @@ export const useClaimOffer = () => useAct((v: { offerId: string; needId?: string
 export const useContactNeed = () => useAct((v: { needId: string; offerId: string }) => api<{ id: string }>(`/api/v1/needs/${v.needId}/contact`, { method: "POST", body: { offerId: v.offerId } }), all);
 export const useAcceptClaim = () => useAct((id: string) => api<ClaimView>(`/api/v1/claims/${id}/accept`, { method: "POST" }), all);
 export const useDeclineClaim = () => useAct((id: string) => api<ClaimView>(`/api/v1/claims/${id}/decline`, { method: "POST" }), all);
-export const useHandover = () => useAct((v: { id: string; otp: string; rating: number; comment?: string }) => api<{ claim: ClaimView; pointsAwarded: number }>(`/api/v1/claims/${v.id}/handover`, { method: "POST", body: { otp: v.otp, rating: v.rating, comment: v.comment ?? "" } }), all);
+export const useHandover = () => useAct((v: { id: string; otp: string }) => api<{ claim: ClaimView; pointsAwarded: number }>(`/api/v1/claims/${v.id}/handover`, { method: "POST", body: { otp: v.otp } }), all);
 export const useReview = () => useAct((v: { id: string; rating: number; comment: string }) => api(`/api/v1/claims/${v.id}/review`, { method: "POST", body: { rating: v.rating, comment: v.comment } }), all);
 export const useComplain = () => useAct((v: { id: string; reason: string }) => api(`/api/v1/claims/${v.id}/complaint`, { method: "POST", body: { reason: v.reason } }), all);
 export const useAppeal = () => useAct((message: string) => api("/api/v1/me/appeal", { method: "POST", body: { message } }), all);

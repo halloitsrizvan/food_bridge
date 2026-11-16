@@ -3,7 +3,7 @@
 import QRCode from "qrcode";
 import { ArrowRight, Check, Download, KeyRound, Loader2, ScanLine, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, CategoryChip, kindLabel } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { useAcceptClaim, useDeclineClaim, useHandover } from "@/lib/api/hooks";
 import { handoverQrUrl } from "@/lib/handover-qr";
 import { QrScanner } from "./qr-scanner";
-import { StarRating } from "./star-rating";
 import type { ClaimView } from "@/lib/schemas/claim";
 import { cn } from "@/lib/utils";
 
@@ -70,16 +69,10 @@ export function OtpDisplay({ otp, claimId }: { otp: string; claimId: string }) {
 export function OtpEntry({ claimId, initialCode, onDone }: { claimId: string; initialCode?: string; onDone?: (r: { claim: ClaimView; pointsAwarded: number }) => void }) {
   const [otp, setOtp] = useState(initialCode && /^\d{6}$/.test(initialCode) ? initialCode : "");
   const [scanning, setScanning] = useState(false);
-  const [rating, setRating] = useState(0); // mandatory
-  const ratingRef = useRef(0);
-  useEffect(() => {
-    ratingRef.current = rating;
-  }, [rating]);
   const handover = useHandover();
-  const finish = (code: string) => {
-    if (ratingRef.current < 1) return void toast.error("Rate the giver first. Reviews are required.");
+  const finish = (code: string) =>
     handover.mutate(
-      { id: claimId, otp: code, rating: ratingRef.current },
+      { id: claimId, otp: code },
       {
         onSuccess: (r) => {
           toast.success("Handover confirmed");
@@ -88,7 +81,6 @@ export function OtpEntry({ claimId, initialCode, onDone }: { claimId: string; in
         onError: (e) => toast.error(e.message),
       },
     );
-  };
   const onScan = useCallback(
     (r: { claimId: string; code: string }) => {
       if (r.claimId !== claimId.toLowerCase()) return void toast.error("That QR belongs to a different handover.");
@@ -100,12 +92,7 @@ export function OtpEntry({ claimId, initialCode, onDone }: { claimId: string; in
   );
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl border bg-accent/40 p-3">
-        <p className="text-sm font-medium">1. Rate the giver <span className="text-clay">(required)</span></p>
-        <StarRating value={rating} onChange={setRating} label="Rate the giver" />
-      </div>
-      <p className="text-sm font-medium">2. Confirm the handover</p>
-      <Button type="button" className="h-12 w-full gap-2 text-base" onClick={() => (rating < 1 ? toast.error("Rate the giver first. Reviews are required.") : setScanning(true))} disabled={handover.isPending}>
+      <Button type="button" className="h-12 w-full gap-2 text-base" onClick={() => setScanning(true)} disabled={handover.isPending}>
         <ScanLine className="size-5" aria-hidden /> Scan the giver&apos;s QR
       </Button>
       <p className="text-center text-xs text-muted-foreground">or enter the 6-digit code</p>
@@ -130,7 +117,7 @@ export function OtpEntry({ claimId, initialCode, onDone }: { claimId: string; in
             placeholder="••••••"
             className="h-12 rounded-xl text-center font-display text-2xl tracking-[0.35em] tabular"
           />
-          <Button type="submit" disabled={otp.length !== 6 || rating < 1 || handover.isPending} className="h-12 px-5">
+          <Button type="submit" disabled={otp.length !== 6 || handover.isPending} className="h-12 px-5">
             {handover.isPending ? "Checking..." : "Confirm"}
           </Button>
         </div>

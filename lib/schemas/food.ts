@@ -163,9 +163,6 @@ export const ClaimOfferSchema = z.object({ needId: z.uuid().optional() });
 export const HandoverSchema = z.object({
   otp: z.string().regex(/^\d{6}$/, "Enter the 6-digit code"),
   photoUrl: z.url().max(500).optional(),
-  /** Mandatory: the receiver rates the giver when confirming the handover. */
-  rating: z.number().int().min(1, "Choose a rating").max(5),
-  comment: z.string().trim().max(500).default(""),
 });
 export const ReviewSchema = z.object({ rating: z.number().int().min(1).max(5), comment: z.string().trim().max(500).default("") });
 export const ComplaintSchema = z.object({ reason: z.string().trim().min(10, "Describe what went wrong").max(1000) });
