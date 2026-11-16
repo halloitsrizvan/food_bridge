@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Bricolage_Grotesque, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/layout/providers";
+import { FoodBridgeChat } from "@/components/chat/foodbridge-chat";
 import "./globals.css";
 
 const dmSans = DM_Sans({ variable: "--font-dm-sans", subsets: ["latin"], display: "swap" });
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <Providers>{children}</Providers>
+        <FoodBridgeChat />
       </body>
     </html>
   );

@@ -117,6 +117,7 @@ After running the seed script, every demo account uses the password `FoodBridge#
 | --- | --- |
 | Government administrator | `gov@foodbridge.demo` |
 | Food giver | `paragon.cater@foodbridge.demo` |
+| Demo giver | `demo.giver@foodbridge.demo` |
 | Food taker | `annadanam@foodbridge.demo` |
 
 Additional seeded accounts are listed in `prisma/seed.ts`.

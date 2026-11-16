@@ -49,6 +49,7 @@ const GIVERS: G[] = [
   { email: "cafe.mocha@foodbridge.demo", name: "Cafe Mocha Bakery", kind: "RESTAURANT", area: "Medical College", lat: 11.2793, lng: 75.8081, address: "Medical College Rd, Kozhikode", points: 130, trust: 81 },
   { email: "sunil.home@foodbridge.demo", name: "Sunil & Family", kind: "HOUSEHOLD", area: "Elathur", lat: 11.3120, lng: 75.7560, address: "Elathur, Kozhikode", points: 25, trust: 70 },
   { email: "grand.cater@foodbridge.demo", name: "Grand Sadhya Caterers", kind: "CATERER", area: "Feroke", lat: 11.1830, lng: 75.8300, address: "Feroke, Kozhikode", points: 640, trust: 56 },
+  { email: "demo.giver@foodbridge.demo", name: "FoodBridge Demo Kitchen", kind: "RESTAURANT", area: "Pottammal", lat: 11.2458, lng: 75.8052, address: "Pottammal Junction, Kozhikode", points: 180, trust: 88 },
 ];
 const TAKERS: T[] = [
   { email: "snehadeepam@foodbridge.demo", name: "Snehadeepam Orphanage", kind: "INSTITUTION", area: "Mavoor Road", lat: 11.2604, lng: 75.7921, address: "Snehadeepam, Mavoor Road", members: 64, trust: 90 },
@@ -103,6 +104,9 @@ async function main() {
     // far from every taker + nearly through its window: the escalation / gov alert demo
     { g: GIVERS[7].email, title: "Catering surplus (unmatched demo)", cat: "COOKED", diet: "NON_VEG", meals: 70, cookedAgoMin: 200, expiresInMin: 35, mode: "TAKER_PICKS_UP", escalate: true },
     { g: GIVERS[4].email, title: "Tomorrow's engagement lunch (upcoming)", cat: "COOKED", diet: "VEG", meals: 150, cookedAgoMin: 0, expiresInMin: 480, mode: "EITHER", scheduledInMin: 180 },
+    { g: GIVERS[8].email, title: "Demo kitchen vegetable meals", cat: "COOKED", diet: "VEG", meals: 30, cookedAgoMin: 45, expiresInMin: 190, mode: "EITHER" },
+    { g: GIVERS[8].email, title: "Sealed fruit and juice packs", cat: "PACKAGED", diet: "VEG", meals: 24, expiresInMin: 420, mode: "GIVER_DELIVERS" },
+    { g: GIVERS[8].email, title: "Fresh produce basket", cat: "RAW", diet: "VEG", meals: 18, expiresInMin: 600, mode: "TAKER_PICKS_UP" },
   ];
   let createdOffers = 0;
   for (const o of OFFERS) {
