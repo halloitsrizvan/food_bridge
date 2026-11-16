@@ -2,7 +2,7 @@
 
 import { ArrowUpRight, HeartHandshake, LayoutGrid, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
@@ -25,8 +25,20 @@ export function setFeedFilter(detail: { q?: string; category?: string; diet?: st
 export function LandingNav() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [scrolled, setScrolled] = useState(false);
   const { data: me } = useMe();
   const loc = useLocation();
+  // Compact mode after scrolling: second row collapses, links move beside a smaller search.
+  // Hysteresis (90 / 20 px) stops flicker when the header height change shifts the page.
+  useEffect(() => {
+    const on = () => setScrolled((prev) => window.scrollY > (prev ? 20 : 90));
+    window.addEventListener("scroll", on, { passive: true });
+    const id = requestAnimationFrame(on);
+    return () => {
+      window.removeEventListener("scroll", on);
+      cancelAnimationFrame(id);
+    };
+  }, []);
   const dash = me ? (me.role === "GOV" ? "/gov" : "/dashboard") : null;
   const cta = me ? { href: me.role === "GIVER" ? "/dashboard/post" : dash!, label: me.role === "GIVER" ? "Share food" : "Dashboard" } : { href: "/signup", label: "Share food" };
 
@@ -59,13 +71,20 @@ export function LandingNav() {
         · <b>Free, government run</b>
       </div>
       <div className="border-b">
-        <div className="mx-auto flex h-[72px] max-w-[1680px] px-4 sm:px-8 items-center gap-4">
+        <div className={cn("mx-auto flex max-w-[1680px] items-center gap-4 px-4 transition-[height] duration-300 sm:px-8", scrolled ? "h-16" : "h-[72px]")}>
           <Link href="/" aria-label="FoodBridge home">
             <Logo />
           </Link>
+          <nav className={cn("ml-4 hidden items-center gap-6 text-sm font-medium", scrolled && "md:flex")} aria-label="Sections" aria-hidden={!scrolled}>
+            {LINKS.map((l) => (
+              <a key={l.href} href={l.href} tabIndex={scrolled ? 0 : -1} className="whitespace-nowrap text-foreground/80 hover:text-primary">
+                {l.label}
+              </a>
+            ))}
+          </nav>
           <form
             role="search"
-            className="relative mx-auto hidden max-w-xl flex-1 md:block"
+            className={cn("relative hidden transition-all duration-300 md:block", scrolled ? "ml-auto w-60 max-w-[15rem]" : "mx-auto max-w-xl flex-1")}
             onSubmit={(e) => {
               e.preventDefault();
               setFeedFilter({ q });
@@ -77,7 +96,7 @@ export function LandingNav() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search biryani, sadhya, bread..."
-              className="h-11 w-full rounded-full border bg-secondary pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary focus:bg-background"
+              className={cn("w-full rounded-full border bg-secondary pl-11 pr-4 text-sm outline-none transition-[height] duration-300 placeholder:text-muted-foreground focus:border-primary focus:bg-background", scrolled ? "h-10" : "h-11")}
             />
           </form>
           <div className="ml-auto flex items-center gap-1.5 md:ml-0">
@@ -99,8 +118,9 @@ export function LandingNav() {
           </div>
         </div>
       </div>
-      <div className="hidden border-b md:block">
-        <nav className="mx-auto flex h-12 max-w-[1680px] px-4 sm:px-8 items-center gap-6 text-sm font-medium" aria-label="Sections">
+      <div className={cn("hidden grid-rows-[1fr] transition-[grid-template-rows] duration-300 md:grid", scrolled && "grid-rows-[0fr]")} inert={scrolled}>
+        <div className="min-h-0 overflow-hidden border-b">
+        <nav className="mx-auto flex h-12 max-w-[1680px] items-center gap-6 px-4 text-sm font-medium sm:px-8" aria-label="Page sections">
           <button type="button" onClick={() => setFeedFilter({})} className="flex items-center gap-2 text-foreground">
             <LayoutGrid className="size-4" aria-hidden /> Explore all categories
           </button>
@@ -115,6 +135,7 @@ export function LandingNav() {
             <HeartHandshake className="size-4" aria-hidden /> API docs
           </a>
         </nav>
+        </div>
       </div>
       {open && (
         <nav className="border-b bg-background px-4 py-2 md:hidden" aria-label="Sections">
