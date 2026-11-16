@@ -9,6 +9,9 @@ import { trustRepository } from "../repositories/trust.repository";
 import { configService } from "./config.service";
 import { notificationService } from "./notification.service";
 
+/** Reviews became mandatory on this date; older handovers are never blocked. */
+const REVIEW_REQUIRED_FROM = new Date("2026-11-16T00:00:00Z");
+
 async function partyClaim(user: Profile, claimId: string) {
   const claim = await claimRepository.findFull(claimId);
   if (!claim || (claim.giverId !== user.id && claim.takerId !== user.id)) throw AppError.notFound("Claim not found");
@@ -17,6 +20,29 @@ async function partyClaim(user: Profile, claimId: string) {
 }
 
 export const trustService = {
+  /** The oldest completed handover (since the rule started) this user has not rated yet. */
+  async pendingReview(userId: string) {
+    const c = await prisma.claim.findFirst({
+      where: {
+        status: "COMPLETED",
+        completedAt: { gte: REVIEW_REQUIRED_FROM },
+        OR: [{ giverId: userId }, { takerId: userId }],
+        reviews: { none: { fromId: userId } },
+      },
+      orderBy: { completedAt: "asc" },
+      include: { offer: { select: { title: true } }, giver: { select: { id: true, name: true } }, taker: { select: { id: true, name: true } } },
+    });
+    if (!c) return null;
+    const other = c.giverId === userId ? c.taker : c.giver;
+    return { claimId: c.id, title: c.offer.title, otherName: other.name, role: c.giverId === userId ? ("GIVER" as const) : ("TAKER" as const) };
+  },
+
+  /** Mandatory reviews: no new posts, requests or acceptances until the last handover is rated. */
+  async assertNoPendingReview(userId: string) {
+    const p = await trustService.pendingReview(userId);
+    if (p) throw AppError.reviewRequired(p.claimId);
+  },
+
   /** Recompute and store an account's trust score from completions, ratings and recent complaints. */
   async recompute(userId: string) {
     const cfg = await configService.get();

@@ -13,7 +13,7 @@ import { StatusStepper } from "@/components/shared/status-stepper";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useAcceptClaim, useClaim, useComplain, useDeclineClaim, useReview } from "@/lib/api/hooks";
+import { useAcceptClaim, useClaim, useComplain, useDeclineClaim, usePendingReview, useReview } from "@/lib/api/hooks";
 import type { ClaimView, Party } from "@/lib/schemas/claim";
 import { cn } from "@/lib/utils";
 import { Confetti } from "./confetti";
@@ -58,17 +58,17 @@ function Contact({ p }: { p: Party }) {
   );
 }
 
-function ReviewDialog({ claim, open, onOpenChange }: { claim: ClaimView; open: boolean; onOpenChange: (o: boolean) => void }) {
+function ReviewDialog({ claim, open, onOpenChange, required }: { claim: ClaimView; open: boolean; onOpenChange: (o: boolean) => void; required?: boolean }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const review = useReview();
   const other = claim.viewerRole === "GIVER" ? claim.taker : claim.giver;
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={(o) => (required ? undefined : onOpenChange(o))}>
+      <DialogContent showCloseButton={!required}>
         <DialogHeader>
           <DialogTitle>Rate {other.name}</DialogTitle>
-          <DialogDescription>Honest ratings keep the network trustworthy.</DialogDescription>
+          <DialogDescription>{required ? "A review is required before you can continue. Honest ratings keep the network trustworthy." : "Honest ratings keep the network trustworthy."}</DialogDescription>
         </DialogHeader>
         <div className="flex justify-center gap-1" role="radiogroup" aria-label="Rating">
           {[1, 2, 3, 4, 5].map((n) => (
@@ -134,7 +134,7 @@ function Celebration({ claim, open, onClose }: { claim: ClaimView; open: boolean
           </DialogHeader>
           {isGiver ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={`/api/v1/posters/${claim.id}`} alt="Your certificate of kindness" className="w-full rounded-2xl border shadow-soft" width={1200} height={800} />
+            <img src={`/api/v1/posters/${claim.id}`} alt="Your congratulations poster" className="mx-auto max-h-[58vh] w-auto rounded-2xl border shadow-soft" width={1080} height={1350} />
           ) : null}
           <DialogFooter className="gap-2 sm:justify-between">
             {isGiver && (
@@ -162,6 +162,7 @@ export function ClaimScreen({ id, initialCode }: { id: string; initialCode?: str
   const accept = useAcceptClaim();
   const decline = useDeclineClaim();
   const [reviewOpen, setReviewOpen] = useState(false);
+  const pending = usePendingReview().data;
   const [complainOpen, setComplainOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const prev = useRef<string | null>(null);
@@ -171,6 +172,9 @@ export function ClaimScreen({ id, initialCode }: { id: string; initialCode?: str
     if (prev.current && prev.current !== "COMPLETED" && c.status === "COMPLETED") setCelebrate(true); // live flip: handover just finished
     prev.current = c.status;
   }, [c]);
+
+  const mustReview = !!c && c.status === "COMPLETED" && c.can.review && pending?.claimId === c.id;
+  const celebrateShown = celebrate && c?.status === "COMPLETED";
 
   if (isPending) return <PageSkeleton />;
   if (isError || !c) return <ErrorState message={error?.message ?? "Could not load this handover"} onRetry={() => refetch()} />;
@@ -294,14 +298,15 @@ export function ClaimScreen({ id, initialCode }: { id: string; initialCode?: str
         {c.complained && <p className="text-xs text-muted-foreground">You filed a complaint for this handover.</p>}
       </section>
 
-      <ReviewDialog claim={c} open={reviewOpen} onOpenChange={setReviewOpen} />
+      {/* mandatory: opens by itself once the celebration is closed, and cannot be dismissed without a rating */}
+      <ReviewDialog claim={c} open={(reviewOpen || mustReview) && !celebrateShown} onOpenChange={setReviewOpen} required={mustReview} />
       <ComplaintDialog claim={c} open={complainOpen} onOpenChange={setComplainOpen} />
       <Celebration
         claim={c}
         open={celebrate && c.status === "COMPLETED"}
         onClose={() => {
           setCelebrate(false);
-          if (c.can.review) setReviewOpen(true);
+          if (c.can.review) setReviewOpen(true); // mandatory rating follows the celebration
         }}
       />
     </div>

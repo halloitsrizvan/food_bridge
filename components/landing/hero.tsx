@@ -50,9 +50,9 @@ export function Hero() {
         </span>
         <div className="flex min-h-[26rem] flex-col justify-end gap-6 p-6 pb-8 sm:min-h-[32rem] sm:p-10 lg:min-h-[36rem]">
           <div className="max-w-xl">
-            <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/12 px-3.5 py-1.5 text-xs font-semibold ring-1 ring-white/25 backdrop-blur sm:text-sm">
+            {/* <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/12 px-3.5 py-1.5 text-xs font-semibold ring-1 ring-white/25 backdrop-blur sm:text-sm">
               <Landmark className="size-4 text-saffron" aria-hidden /> Government of the people, for the people · Public food-security programme
-            </p>
+            </p> */}
             <h1 className="text-balance font-display text-4xl font-semibold leading-[1.05] sm:text-6xl">{t.landing.headline}</h1>
             <p className="mt-4 max-w-md text-pretty text-sm text-white/85 sm:text-base">{t.landing.sub}</p>
             <div className="mt-6 flex flex-wrap gap-3">

@@ -16,6 +16,7 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
   let prisma: typeof import("@/server/lib/prisma").prisma;
   let claimService: typeof import("@/server/services/claim.service").claimService;
   let offerService: typeof import("@/server/services/offer.service").offerService;
+  let trustService: typeof import("@/server/services/trust.service").trustService;
   let profiles: Awaited<ReturnType<typeof prisma.profile.findMany>>;
   const H = 3_600_000;
 
@@ -34,6 +35,7 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
     ({ prisma } = await import("@/server/lib/prisma"));
     ({ claimService } = await import("@/server/services/claim.service"));
     ({ offerService } = await import("@/server/services/offer.service"));
+    ({ trustService } = await import("@/server/services/trust.service"));
     const base = { onboarded: true, address: "Secret Street 1", area: "Testville", phone: "+919999900000" };
     await prisma.profile.createMany({
       data: [
@@ -101,9 +103,17 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
     expect(takerView.revealed).toBe(true);
     expect(takerView.giver.address).toBe("Secret Street 1");
 
-    await expect(claimService.handover(taker, claimId, { otp: accepted.otp === "000000" ? "111111" : "000000" })).rejects.toMatchObject({ status: 400 });
-    const done = await claimService.handover(taker, claimId, { otp: accepted.otp! });
+    await expect(claimService.handover(taker, claimId, { otp: accepted.otp === "000000" ? "111111" : "000000", rating: 5 })).rejects.toMatchObject({ status: 400 });
+    const done = await claimService.handover(taker, claimId, { otp: accepted.otp!, rating: 4, comment: "Warm and on time" });
     expect(done.claim.status).toBe("COMPLETED");
+
+    // reviews are mandatory: the receiver's rating was recorded with the handover...
+    expect(await prisma.review.count({ where: { claimId, fromId: taker.id } })).toBe(1);
+    // ...and the giver cannot post or accept anything new until they rate the receiver
+    await expect(offerService.create(giver, offerInput())).rejects.toMatchObject({ status: 403, code: "REVIEW_REQUIRED" });
+    expect(await trustService.pendingReview(giver.id)).toMatchObject({ claimId });
+    await trustService.review(giver, claimId, { rating: 5, comment: "" });
+    expect(await trustService.pendingReview(giver.id)).toBeNull();
 
     const [g, t] = await Promise.all([prisma.profile.findUnique({ where: { id: ids.giver } }), prisma.profile.findUnique({ where: { id: ids.taker } })]);
     expect(g!.points).toBeGreaterThanOrEqual(10 + 12 + 5); // base + meals + fast bonus

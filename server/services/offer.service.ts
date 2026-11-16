@@ -10,6 +10,7 @@ import { profileRepository } from "../repositories/profile.repository";
 import { configService } from "./config.service";
 import { notificationService } from "./notification.service";
 import { maintenanceService } from "./maintenance.service";
+import { trustService } from "./trust.service";
 
 export function toPublicOffer(o: OfferWithGiver): PublicOffer {
   return {
@@ -56,6 +57,7 @@ export async function takerCandidates(centre: { lat: number; lng: number }, radi
 export const offerService = {
   async create(giver: Profile, input: CreateOffer) {
     if (giver.role !== "GIVER") throw AppError.forbidden("Only givers can post food");
+    await trustService.assertNoPendingReview(giver.id);
     if (giver.lat == null || giver.lng == null) throw AppError.onboardingRequired();
     const cfg = await configService.get();
     const now = new Date();

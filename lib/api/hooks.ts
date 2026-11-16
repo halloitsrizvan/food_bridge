@@ -56,6 +56,8 @@ export const useNeedsNear = () => useQuery({ queryKey: ["needs-near"], queryFn: 
 export const useTakerSuggestions = (offerId: string | undefined) =>
   useQuery({ queryKey: ["suggest", offerId], enabled: !!offerId, queryFn: () => api<TakerSuggestion[]>(`/api/v1/offers/${offerId}/suggestions`) });
 export const useClaim = (id: string) => useQuery({ queryKey: ["claim", id], queryFn: () => api<ClaimView>(`/api/v1/claims/${id}`), refetchInterval: 6_000 });
+export type PendingReview = { claimId: string; title: string; otherName: string; role: "GIVER" | "TAKER" } | null;
+export const usePendingReview = (enabled = true) => useQuery({ queryKey: ["pending-review"], enabled, queryFn: () => api<PendingReview>("/api/v1/me/pending-review"), refetchInterval: 20_000 });
 export const useNotifications = () =>
   useQuery({ queryKey: ["notifications"], queryFn: () => api<{ unread: number; items: Notif[] }>("/api/v1/notifications"), refetchInterval: 30_000 });
 
@@ -67,7 +69,7 @@ function useAct<TIn, TOut>(fn: (v: TIn) => Promise<TOut>, invalidate: string[][]
     onSuccess: () => invalidate.forEach((k) => qc.invalidateQueries({ queryKey: k })),
   });
 }
-const all = [["my-offers"], ["my-needs"], ["my-claims"], ["feed"], ["needs-near"], ["offers"], ["claim"], ["me"], ["notifications"], ["impact"]];
+const all = [["pending-review"], ["my-offers"], ["my-needs"], ["my-claims"], ["feed"], ["needs-near"], ["offers"], ["claim"], ["me"], ["notifications"], ["impact"]];
 
 export const useCreateOffer = () => useAct((b: CreateOffer) => api<PublicOffer>("/api/v1/offers", { method: "POST", body: b }), all);
 export const useUpdateOffer = () => useAct((v: { id: string; patch: Record<string, unknown> }) => api<PublicOffer>(`/api/v1/offers/${v.id}`, { method: "PATCH", body: v.patch }), all);
@@ -78,7 +80,7 @@ export const useClaimOffer = () => useAct((v: { offerId: string; needId?: string
 export const useContactNeed = () => useAct((v: { needId: string; offerId: string }) => api<{ id: string }>(`/api/v1/needs/${v.needId}/contact`, { method: "POST", body: { offerId: v.offerId } }), all);
 export const useAcceptClaim = () => useAct((id: string) => api<ClaimView>(`/api/v1/claims/${id}/accept`, { method: "POST" }), all);
 export const useDeclineClaim = () => useAct((id: string) => api<ClaimView>(`/api/v1/claims/${id}/decline`, { method: "POST" }), all);
-export const useHandover = () => useAct((v: { id: string; otp: string }) => api<{ claim: ClaimView; pointsAwarded: number }>(`/api/v1/claims/${v.id}/handover`, { method: "POST", body: { otp: v.otp } }), all);
+export const useHandover = () => useAct((v: { id: string; otp: string; rating: number; comment?: string }) => api<{ claim: ClaimView; pointsAwarded: number }>(`/api/v1/claims/${v.id}/handover`, { method: "POST", body: { otp: v.otp, rating: v.rating, comment: v.comment ?? "" } }), all);
 export const useReview = () => useAct((v: { id: string; rating: number; comment: string }) => api(`/api/v1/claims/${v.id}/review`, { method: "POST", body: { rating: v.rating, comment: v.comment } }), all);
 export const useComplain = () => useAct((v: { id: string; reason: string }) => api(`/api/v1/claims/${v.id}/complaint`, { method: "POST", body: { reason: v.reason } }), all);
 export const useAppeal = () => useAct((message: string) => api("/api/v1/me/appeal", { method: "POST", body: { message } }), all);

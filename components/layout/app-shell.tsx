@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, HandHeart, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup } from "lucide-react";
+import { Bell, HandHeart, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useAppeal } from "@/lib/api/hooks";
+import { useAppeal, usePendingReview } from "@/lib/api/hooks";
 import type { ProfileDTO } from "@/lib/schemas/profile";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -72,6 +72,22 @@ function AppealBanner({ status }: { status: ProfileDTO["status"] }) {
           </Dialog>
         </>
       )}
+    </div>
+  );
+}
+
+function ReviewBanner() {
+  const { data } = usePendingReview();
+  if (!data) return null;
+  return (
+    <div role="alert" className="flex flex-wrap items-center gap-3 border-b border-saffron/40 bg-saffron/20 px-4 py-3 text-sm">
+      <Star className="size-5 shrink-0 text-[#b7791f]" aria-hidden />
+      <p className="min-w-0 flex-1">
+        Rate <b>{data.otherName}</b> for “{data.title}” to keep {data.role === "GIVER" ? "posting and accepting" : "requesting food"}. Reviews are required.
+      </p>
+      <Link href={`/dashboard/claims/${data.claimId}`} className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground">
+        Rate now
+      </Link>
     </div>
   );
 }
@@ -144,6 +160,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
           </div>
         </header>
         <AppealBanner status={user.status} />
+        <ReviewBanner />
         <main id="main" className="min-w-0 flex-1 px-3 pb-28 pt-4 sm:px-4 sm:pt-6 md:px-8 md:pb-10">
           <div className="mx-auto max-w-6xl">{children}</div>
         </main>

@@ -1,4 +1,23 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
   "regions": ["icn1"],
-  "crons": [{ "path": "/api/v1/cron/tick", "schedule": "0 3 * * *" }]
+  "crons": [{ "path": "/api/v1/cron/tick", "schedule": "0 3 * * *" }],
+  "rewrites": [
+    { "source": "/docs", "destination": "/api/docs" },
+    { "source": "/openapi.json", "destination": "/api/openapi.json" },
+    { "source": "/health", "destination": "/api/v1/health" }
+  ],
+  "redirects": [
+    { "source": "/signin", "destination": "/login", "permanent": true },
+    { "source": "/register", "destination": "/signup", "permanent": true },
+    { "source": "/admin", "destination": "/gov", "permanent": false },
+    { "source": "/home", "destination": "/", "permanent": true }
+  ],
+  "functions": {
+    "app/api/v1/cron/tick/route.ts": { "maxDuration": 60 },
+    "app/api/v1/posters/[claimId]/route.tsx": { "maxDuration": 30 },
+    "app/api/v1/claims/[id]/qr/route.tsx": { "maxDuration": 30 },
+    "app/api/v1/geo/resolve/route.ts": { "maxDuration": 20 }
+  }
 }

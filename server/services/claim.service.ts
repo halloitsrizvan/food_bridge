@@ -116,6 +116,7 @@ const isUniqueViolation = (e: unknown) => e instanceof Prisma.PrismaClientKnownR
 
 /** Shared creation path: row-locks the offer so exactly one concurrent claim can win. */
 async function createClaim(args: { offerId: string; needId?: string; initiator: Profile; side: "TAKER" | "GIVER" }) {
+  await trustService.assertNoPendingReview(args.initiator.id);
   const cfg = await configService.get();
   const offer0 = await offerRepository.findById(args.offerId);
   if (!offer0) throw AppError.notFound("Post not found");
@@ -209,6 +210,7 @@ export const claimService = {
 
   /** The OTHER side of whoever created the claim accepts; generates the handover OTP. */
   async accept(user: Profile, id: string) {
+    await trustService.assertNoPendingReview(user.id);
     const cfg = await configService.get();
     const result = await prisma.$transaction(async (tx) => {
       await claimRepository.lock(tx, id);
@@ -255,7 +257,7 @@ export const claimService = {
   },
 
   /** Taker enters the giver's OTP at pickup / delivery. Completes the claim and awards points. */
-  async handover(user: Profile, id: string, input: { otp: string; photoUrl?: string }) {
+  async handover(user: Profile, id: string, input: { otp: string; photoUrl?: string; rating: number; comment?: string }) {
     const cfg = await configService.get();
     const done = await prisma.$transaction(async (tx) => {
       await claimRepository.lock(tx, id);
@@ -282,6 +284,12 @@ export const claimService = {
       return { c, giverPts, takerPts, meals };
     });
 
+    // mandatory review: recorded right after the code is accepted (adds the giver's review bonus)
+    try {
+      await trustService.review(user, id, { rating: input.rating, comment: input.comment ?? "" });
+    } catch (e) {
+      console.error("[handover] review failed", e); // the receiver is then asked again via the pending-review gate
+    }
     await Promise.all([trustService.recompute(done.c.giverId), trustService.recompute(done.c.takerId)]);
     await notificationService.notifyMany(
       [

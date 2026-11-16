@@ -9,6 +9,7 @@ export type ErrorCode =
   | "RATE_LIMITED"
   | "ACCOUNT_SUSPENDED"
   | "ONBOARDING_REQUIRED"
+  | "REVIEW_REQUIRED"
   | "INTERNAL";
 
 export class AppError extends Error {
@@ -33,6 +34,9 @@ export class AppError extends Error {
   }
   static suspended() {
     return new AppError(403, "ACCOUNT_SUSPENDED", "Your account is suspended. You can read but not post or claim. Submit an appeal.");
+  }
+  static reviewRequired(claimId: string) {
+    return new AppError(403, "REVIEW_REQUIRED", "Rate your last handover before continuing", { claimId });
   }
   static onboardingRequired() {
     return new AppError(403, "ONBOARDING_REQUIRED", "Finish onboarding first");
