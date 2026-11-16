@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, HandHeart, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star } from "lucide-react";
+import { Bell, HandHeart, MapPin, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -25,7 +25,7 @@ function navFor(role: ProfileDTO["role"]): Item[] {
   const base: Item[] = [{ href: "/dashboard", label: "Home", icon: LayoutDashboard }];
   if (role === "GIVER") base.push({ href: "/dashboard/post", label: "Post food", icon: PlusCircle });
   if (role === "TAKER") base.push({ href: "/dashboard/needs/new", label: "Post a need", icon: PlusCircle });
-  base.push({ href: "/dashboard/claims", label: "Handovers", icon: Inbox }, { href: "/dashboard/notifications", label: "Alerts", icon: Bell });
+  base.push({ href: "/dashboard/nearby", label: "Nearby", icon: MapPin }, { href: "/dashboard/claims", label: "Handovers", icon: Inbox }, { href: "/dashboard/notifications", label: "Alerts", icon: Bell });
   return base;
 }
 
@@ -83,7 +83,7 @@ function ReviewBanner() {
     <div role="alert" className="flex flex-wrap items-center gap-3 border-b border-saffron/40 bg-saffron/20 px-4 py-3 text-sm">
       <Star className="size-5 shrink-0 text-[#b7791f]" aria-hidden />
       <p className="min-w-0 flex-1">
-        Rate <b>{data.otherName}</b> for “{data.title}” to keep {data.role === "GIVER" ? "posting and accepting" : "requesting food"}. Reviews are required.
+        Rate <b>{data.otherName}</b> for “{data.title}” to keep requesting food. Reviews are required.
       </p>
       <Link href={`/dashboard/claims/${data.claimId}`} className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground">
         Rate now
@@ -133,7 +133,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
               </p>
             </div>
           </div>
-          <p className="mt-2 text-xs tabular text-muted-foreground">{user.points} points</p>
+          {user.role === "GIVER" && <p className="mt-2 text-xs tabular text-muted-foreground">{user.points} points</p>}
         </div>
       </aside>
 
@@ -167,7 +167,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
       </div>
 
       {/* Mobile bottom tab bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Main">
+      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden" aria-label="Main">
         {items.map((n) => (
           <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} className={cn("flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium", active(n.href) ? "text-primary" : "text-muted-foreground")}>
             <n.icon className="size-5" aria-hidden /> {n.label}

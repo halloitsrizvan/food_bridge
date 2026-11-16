@@ -109,7 +109,10 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
       </section>
 
       <section aria-label="Needs near you" className="space-y-3">
-        <h2 className="font-display text-lg font-semibold sm:text-xl">Needs near you</h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-semibold sm:text-xl">Needs near you</h2>
+          <Link href="/dashboard/nearby" className="text-sm font-medium text-primary hover:underline">See on map</Link>
+        </div>
         {needs.isPending ? (
           <PageSkeleton />
         ) : !needs.data?.length ? (

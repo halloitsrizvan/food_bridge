@@ -97,7 +97,7 @@ export async function buildClaimView(c: ClaimFull, viewer: Profile): Promise<Cla
       accept: c.status === "PENDING" && mine && c.holdUntil > now,
       decline: c.status === "PENDING" && mine && c.holdUntil > now,
       handover: c.status === "ACCEPTED" && isTaker && (c.otpExpiresAt ?? now) > now,
-      review: c.status === "COMPLETED" && (isGiver || isTaker) && !review,
+      review: c.status === "COMPLETED" && isTaker && !review,
       complain: ["ACCEPTED", "COMPLETED", "EXPIRED"].includes(c.status) && (isGiver || isTaker) && !complaint,
     },
     reviewed: !!review,
@@ -271,17 +271,17 @@ export const claimService = {
       const meals = c.offer.quantityMeals;
       const minutes = c.acceptedAt ? (now.getTime() - c.acceptedAt.getTime()) / 60_000 : 999;
       const giverPts = giverPoints(meals, minutes, cfg);
-      const takerPts = cfg.points.takerConfirm;
 
       await claimRepository.update(tx, id, { status: "COMPLETED", completedAt: now, mealsDelivered: meals, handoverPhoto: input.photoUrl });
       await offerRepository.update(c.offerId, { status: "DELIVERED" }, tx);
       if (c.needId) await needRepository.update(c.needId, { status: "FULFILLED" }, tx);
 
-      for (const [accountId, delta] of [[c.giverId, giverPts], [c.takerId, takerPts]] as const) {
+      // only givers earn points; receivers have no points system
+      for (const [accountId, delta] of [[c.giverId, giverPts]] as const) {
         await trustRepository.addLedger(tx, { accountId, claimId: id, delta, reason: "HANDOVER" });
         await tx.profile.update({ where: { id: accountId }, data: { points: { increment: delta } } });
       }
-      return { c, giverPts, takerPts, meals };
+      return { c, giverPts, meals };
     });
 
     // mandatory review: recorded right after the code is accepted (adds the giver's review bonus)
@@ -294,10 +294,10 @@ export const claimService = {
     await notificationService.notifyMany(
       [
         { userId: done.c.giverId, type: "HANDOVER_DONE", title: `+${done.giverPts} points`, body: `${done.meals} meals delivered from ${done.c.offer.title}. Your certificate is ready.`, link: `/dashboard/claims/${id}` },
-        { userId: done.c.takerId, type: "HANDOVER_DONE", title: "Handover confirmed", body: `Thanks for confirming. Please rate ${done.c.giver.name}.`, link: `/dashboard/claims/${id}` },
+        { userId: done.c.takerId, type: "HANDOVER_DONE", title: "Handover confirmed", body: `Thanks for confirming. Your rating of ${done.c.giver.name} was recorded.`, link: `/dashboard/claims/${id}` },
       ],
       { email: true },
     );
-    return { claim: await buildClaimView((await claimRepository.findFull(id))!, user), pointsAwarded: done.takerPts };
+    return { claim: await buildClaimView((await claimRepository.findFull(id))!, user), pointsAwarded: 0 };
   },
 };

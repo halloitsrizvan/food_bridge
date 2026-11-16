@@ -8,7 +8,6 @@ import { ClaimCard } from "@/components/claims/claim-card";
 import { PostCard } from "@/components/shared/post-card";
 import { EmptyState, ErrorState, PageSkeleton } from "@/components/shared/states";
 import { NEED_STEPS, needStep, StatusStepper } from "@/components/shared/status-stepper";
-import { TrustGauge } from "@/components/shared/trust-gauge";
 import { buttonVariants, Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useCancelNeed, useClaimOffer, useFeed, useMyClaims, useMyNeeds, useOpenToReceive } from "@/lib/api/hooks";
@@ -53,7 +52,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
         <Stat label="Meals received" value={meals} sub={`${done.length} handovers`} />
         <Stat label="Members" value={me.members ?? "-"} sub={KIND_LABEL[me.takerKind ?? ""] ?? ""} />
         <Stat label="Open requests" value={openNeeds.length + active.length} sub="needs and claims" />
-        <div className="flex items-center justify-center rounded-[20px] border bg-surface p-4 shadow-soft"><TrustGauge score={me.trustScore} /></div>
+        <Stat label="Active handovers" value={active.length} sub="waiting or in progress" />
       </div>
 
       {toRate.length > 0 && (
@@ -73,7 +72,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
       <section aria-label="Food near you" className="space-y-3">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h2 className="font-display text-lg font-semibold sm:text-xl">Food near you</h2>
+            <h2 className="font-display text-lg font-semibold sm:text-xl">Food near you <Link href="/dashboard/nearby" className="ml-2 text-sm font-medium text-primary hover:underline">See on map</Link></h2>
             <p className="text-sm text-muted-foreground">Only food that can reach you before it spoils, best match first.</p>
           </div>
         </div>

@@ -56,7 +56,7 @@ export const useNeedsNear = () => useQuery({ queryKey: ["needs-near"], queryFn: 
 export const useTakerSuggestions = (offerId: string | undefined) =>
   useQuery({ queryKey: ["suggest", offerId], enabled: !!offerId, queryFn: () => api<TakerSuggestion[]>(`/api/v1/offers/${offerId}/suggestions`) });
 export const useClaim = (id: string) => useQuery({ queryKey: ["claim", id], queryFn: () => api<ClaimView>(`/api/v1/claims/${id}`), refetchInterval: 6_000 });
-export type PendingReview = { claimId: string; title: string; otherName: string; role: "GIVER" | "TAKER" } | null;
+export type PendingReview = { claimId: string; title: string; otherName: string; role: "TAKER" } | null;
 export const usePendingReview = (enabled = true) => useQuery({ queryKey: ["pending-review"], enabled, queryFn: () => api<PendingReview>("/api/v1/me/pending-review"), refetchInterval: 20_000 });
 export const useNotifications = () =>
   useQuery({ queryKey: ["notifications"], queryFn: () => api<{ unread: number; items: Notif[] }>("/api/v1/notifications"), refetchInterval: 30_000 });

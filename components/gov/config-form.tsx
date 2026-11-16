@@ -67,7 +67,6 @@ function Editor({ initial }: { initial: Cfg }) {
         <Num label="Meal points cap" value={c.points.mealCap} onChange={(n) => up("points", { ...c.points, mealCap: n })} />
         <Num label="Fast handover bonus" value={c.points.fastBonus} onChange={(n) => up("points", { ...c.points, fastBonus: n })} />
         <Num label="Fast within (min)" value={c.points.fastWithinMin} onChange={(n) => up("points", { ...c.points, fastWithinMin: n })} />
-        <Num label="Receiver confirmation points" value={c.points.takerConfirm} onChange={(n) => up("points", { ...c.points, takerConfirm: n })} />
       </Group>
       <Group title="Suspension and impact">
         <Num label="Suspend at weighted complaints" step={0.5} value={c.suspension.weightThreshold} onChange={(n) => up("suspension", { ...c.suspension, weightThreshold: n })} />

@@ -107,17 +107,17 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
     const done = await claimService.handover(taker, claimId, { otp: accepted.otp!, rating: 4, comment: "Warm and on time" });
     expect(done.claim.status).toBe("COMPLETED");
 
-    // reviews are mandatory: the receiver's rating was recorded with the handover...
+    // the receiver's rating is mandatory and was recorded with the handover; givers are never asked to rate receivers
     expect(await prisma.review.count({ where: { claimId, fromId: taker.id } })).toBe(1);
-    // ...and the giver cannot post or accept anything new until they rate the receiver
-    await expect(offerService.create(giver, offerInput())).rejects.toMatchObject({ status: 403, code: "REVIEW_REQUIRED" });
-    expect(await trustService.pendingReview(giver.id)).toMatchObject({ claimId });
-    await trustService.review(giver, claimId, { rating: 5, comment: "" });
+    expect(await trustService.pendingReview(taker.id)).toBeNull();
     expect(await trustService.pendingReview(giver.id)).toBeNull();
+    await expect(trustService.review(giver, claimId, { rating: 5, comment: "" })).rejects.toMatchObject({ status: 403 });
+    const again = await offerService.create(giver, offerInput()); // the giver is free to post again
+    created.offers.push(again.id);
 
     const [g, t] = await Promise.all([prisma.profile.findUnique({ where: { id: ids.giver } }), prisma.profile.findUnique({ where: { id: ids.taker } })]);
     expect(g!.points).toBeGreaterThanOrEqual(10 + 12 + 5); // base + meals + fast bonus
-    expect(t!.points).toBeGreaterThan(0);
+    expect(t!.points).toBe(0); // receivers have no points
     expect((await prisma.offer.findUnique({ where: { id: offer.id } }))!.status).toBe("DELIVERED");
   });
 

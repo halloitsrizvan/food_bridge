@@ -26,15 +26,14 @@ export const trustService = {
       where: {
         status: "COMPLETED",
         completedAt: { gte: REVIEW_REQUIRED_FROM },
-        OR: [{ giverId: userId }, { takerId: userId }],
+        takerId: userId, // only receivers review (givers are rated, receivers are not)
         reviews: { none: { fromId: userId } },
       },
       orderBy: { completedAt: "asc" },
       include: { offer: { select: { title: true } }, giver: { select: { id: true, name: true } }, taker: { select: { id: true, name: true } } },
     });
     if (!c) return null;
-    const other = c.giverId === userId ? c.taker : c.giver;
-    return { claimId: c.id, title: c.offer.title, otherName: other.name, role: c.giverId === userId ? ("GIVER" as const) : ("TAKER" as const) };
+    return { claimId: c.id, title: c.offer.title, otherName: c.giver.name, role: "TAKER" as const };
   },
 
   /** Mandatory reviews: no new posts, requests or acceptances until the last handover is rated. */
@@ -64,6 +63,7 @@ export const trustService = {
   },
 
   async review(user: Profile, claimId: string, input: { rating: number; comment: string }) {
+    if (user.role !== "TAKER") throw AppError.forbidden("Only receivers rate givers");
     const { claim, otherId } = await partyClaim(user, claimId);
     if (claim.status !== "COMPLETED") throw AppError.conflict("You can review after the handover");
     if (await trustRepository.findReview(claimId, user.id)) throw AppError.conflict("You already reviewed this handover");

@@ -242,7 +242,7 @@ export function ClaimScreen({ id, initialCode }: { id: string; initialCode?: str
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{other.name}</p>
               <p className="text-xs text-muted-foreground">
-                {kindLabel(other.kind)} · {other.area} · trust {other.trustScore}
+                {kindLabel(other.kind)} · {other.area}{c.viewerRole === "TAKER" ? ` · trust ${other.trustScore}` : ""}
                 {other.members ? ` · ${other.members} members` : ""}
               </p>
             </div>
