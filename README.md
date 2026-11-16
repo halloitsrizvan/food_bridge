@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hackathon Base
 
-## Getting Started
+Problem-agnostic starter: auth with roles, layered API, generated API docs, image uploads.
+No domain features. Build yours with [docs/ADD_A_FEATURE.md](docs/ADD_A_FEATURE.md).
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Next.js (App Router, Cache Components) · TypeScript (strict) · Tailwind 4 · shadcn/ui · TanStack Query ·
+Supabase Postgres + Prisma 6 · Supabase Auth · Zod · zod-to-openapi + Scalar · Cloudinary · Vitest · Vercel.
+
+> This Next.js version renames `middleware` to `proxy` (`proxy.ts`) and enables `cacheComponents`:
+> anything reading cookies must sit behind `<Suspense>`. Read `node_modules/next/dist/docs/` first.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  UI[React pages + TanStack Query hooks] -->|fetch /api/v1| RH[Route handlers<br/>route wrapper]
+  RH --> SV[Services<br/>business logic]
+  SV --> RP[Repositories<br/>Prisma only]
+  RP --> DB[(Supabase Postgres)]
+  RH -.guards.-> AU[Supabase Auth + Profile role]
+  RH -.sign.-> CL[Cloudinary]
+  UI -->|direct upload| CL
+  ZS[lib/schemas Zod] --- RH
+  ZS --- UI
+  ZS --> OA[OpenAPI registry] --> DOCS[/api/docs/]
+  PX[proxy.ts] -.session refresh + redirects.-> UI
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Layers: `app/api/v1` (thin) → `server/services` (logic) → `server/repositories` (Prisma). Shared Zod schemas in `lib/schemas`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. `npm install` (also runs `prisma generate`)
+2. `cp .env.example .env.local` and fill every value (see comments inside).
+3. Supabase: create a project, turn **off** "Confirm email" (Authentication → Providers → Email) for the demo.
+4. `npm run db:push`
+5. Create two users in Supabase (Authentication → Users), then
+   `SEED_ADMIN_ID=<uuid> SEED_USER_ID=<uuid> npm run db:seed`
+   (users who sign up normally get a `USER` profile automatically on first request).
+6. `npm run dev` → http://localhost:3000, API docs at `/api/docs`.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Script | Purpose |
+| --- | --- |
+| `dev` / `build` / `start` | Next.js |
+| `typecheck` / `lint` / `test` | Quality gates |
+| `check` | typecheck + lint + test + build |
+| `db:push` / `db:migrate` / `db:seed` / `db:studio` / `db:generate` | Prisma |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy (Vercel)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Import the repo, add every variable from `.env.example` in Project Settings → Environment Variables, deploy.
+`NEXT_PUBLIC_APP_URL` = the Vercel URL. Rate limiting is in-memory and per instance: swap for Upstash for production.

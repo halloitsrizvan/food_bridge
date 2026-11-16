@@ -1,0 +1,27 @@
+// DATABASE_URL = Supabase pooled connection (pgbouncer, port 6543) — used at runtime.
+// DIRECT_URL   = Supabase direct connection (port 5432) — used by db push / migrate.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+/// One row per Supabase auth user. `id` equals auth.users.id.
+model Profile {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+
+  @@index([role])
+}
