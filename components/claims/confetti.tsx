@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
-const COLORS = ["#1F7A4D", "#F2A33A", "#C8553D", "#2F6F8F", "#E0A21B"];
+const COLORS = ["#088178", "#F2A33A", "#C8553D", "#2F6F8F", "#E0A21B"];
 
 /** One-shot confetti burst (delivery complete only). Renders nothing with reduced motion. */
 export function Confetti() {

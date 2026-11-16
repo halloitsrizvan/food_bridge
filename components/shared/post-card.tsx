@@ -1,13 +1,13 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { MapPin, Utensils, Zap } from "lucide-react";
+import { Carrot, MapPin, Package, Salad, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatLeft } from "@/lib/format";
 import type { OfferWithMatch } from "@/lib/schemas/food";
 import { useNow } from "@/lib/use-now";
 import { cn } from "@/lib/utils";
-import { Avatar, CategoryChip, DietBadge, kindLabel, ModeChip, TierBadge } from "./badges";
+import { DietBadge, kindLabel, ModeChip, TierBadge } from "./badges";
 import { CountdownRing } from "./countdown-ring";
 
 type Props = {
@@ -20,11 +20,32 @@ type Props = {
   className?: string;
 };
 
+const TILE = {
+  COOKED: { bg: "bg-[#fdeee6] dark:bg-[#3a2418]", fg: "text-[#c2562b]", icon: Salad },
+  PACKAGED: { bg: "bg-[#eaf2fc] dark:bg-[#152b40]", fg: "text-[#2f6fb5]", icon: Package },
+  RAW: { bg: "bg-[#e8f5ec] dark:bg-[#143323]", fg: "text-[#1d7a45]", icon: Carrot },
+} as const;
+
+/** Trust score 0-100 shown as a 5-star rating, like a product card. */
+function Stars({ trust }: { trust: number }) {
+  const filled = Math.round(trust / 20);
+  return (
+    <span className="inline-flex items-center gap-0.5" aria-label={`Trust ${trust} out of 100`}>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Star key={i} className={cn("size-3", i < filled ? "fill-saffron text-saffron" : "fill-line text-line")} aria-hidden />
+      ))}
+      <span className="ml-1 text-[11px] text-muted-foreground tabular">({trust})</span>
+    </span>
+  );
+}
+
 export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel = "Contact", busy, className }: Props) {
   const reduce = useReducedMotion();
   const now = useNow();
   const upcoming = !!offer.scheduledFor && !!now && new Date(offer.scheduledFor).getTime() > now;
   const m = offer.match;
+  const tile = TILE[offer.category];
+  const Icon = tile.icon;
 
   return (
     <motion.article
@@ -32,60 +53,50 @@ export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel = "C
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: Math.min(index, 8) * 0.05 }}
       whileHover={reduce ? undefined : { y: -3 }}
-      className={cn("group flex flex-col gap-4 rounded-[20px] border bg-surface p-5 shadow-soft transition-shadow hover:shadow-lift", className)}
+      className={cn("group flex flex-col gap-3 rounded-[20px] border bg-background p-2.5 transition-shadow hover:shadow-lift", className)}
     >
-      <div className="flex items-start gap-3">
-        <CategoryChip category={offer.category} />
-        <div className="min-w-0 flex-1">
-          <h3 className="line-clamp-2 font-display text-base font-semibold leading-snug">
-            <button type="button" onClick={onOpen} className="text-left outline-offset-4 hover:underline">
-              {offer.title}
-            </button>
-          </h3>
-          <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
-            <Utensils className="size-3.5" aria-hidden />
-            <b className="tabular text-foreground">{offer.quantityMeals}</b> meals
-          </p>
-        </div>
-        {upcoming ? (
-          <span className="rounded-full bg-info/15 px-2.5 py-1 text-xs font-semibold text-info">Upcoming</span>
+      <button type="button" onClick={onOpen} aria-label={`Details: ${offer.title}`} className={cn("relative grid h-40 w-full place-items-center overflow-hidden rounded-2xl", tile.bg)}>
+        {offer.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={offer.photoUrl} alt="" className="size-full object-cover" />
         ) : (
-          <CountdownRing expiresAt={offer.expiresAt} startAt={offer.createdAt} size={56} />
+          <Icon className={cn("size-20 transition-transform group-hover:scale-110", tile.fg)} strokeWidth={1.3} aria-hidden />
+        )}
+        <span className="absolute left-2.5 top-2.5"><DietBadge diet={offer.diet} className="bg-background/90 backdrop-blur" /></span>
+        <span className="absolute right-2 top-2">
+          {upcoming ? (
+            <span className="rounded-full bg-info px-2.5 py-1 text-xs font-semibold text-white">Upcoming</span>
+          ) : (
+            <span className="block rounded-full bg-background/95 p-0.5 shadow-soft"><CountdownRing expiresAt={offer.expiresAt} startAt={offer.createdAt} size={46} stroke={4} /></span>
+          )}
+        </span>
+      </button>
+
+      <div className="space-y-2 px-1.5">
+        <h3 className="line-clamp-1 font-display text-base font-semibold">{offer.title}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <Stars trust={offer.giverTrust} />
+          <TierBadge tier={offer.giverTier} />
+        </div>
+        <p className="flex items-baseline gap-2">
+          <span className="font-display text-xl font-semibold tabular text-primary">{offer.quantityMeals}</span>
+          <span className="text-sm text-muted-foreground">meals</span>
+          <ModeChip mode={offer.mode} className="ml-auto" />
+        </p>
+        <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <MapPin className="size-3.5 shrink-0" aria-hidden /> <span className="truncate">{offer.area || "Nearby"} · {offer.giverName} · {kindLabel(offer.giverKind)}</span>
+        </p>
+        {m && (
+          <p className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-xs font-medium text-accent-foreground">
+            <Zap className="size-3.5 text-primary" aria-hidden />
+            {m.travelMin} min away, {now ? formatLeft(new Date(offer.expiresAt).getTime() - now) : "…"} left · {Math.round(m.score * 100)} match
+          </p>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        <DietBadge diet={offer.diet} />
-        <ModeChip mode={offer.mode} />
-        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-          <MapPin className="size-3" aria-hidden /> {offer.area || "Nearby"}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2.5">
-        <Avatar name={offer.giverName} kind={offer.giverKind} size={32} />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{offer.giverName}</p>
-          <p className="text-xs text-muted-foreground">{kindLabel(offer.giverKind)}</p>
-        </div>
-        <TierBadge tier={offer.giverTier} />
-      </div>
-
-      {m && (
-        <p className="flex items-center gap-1.5 rounded-xl bg-primary/8 px-3 py-2 text-xs font-medium text-deep dark:text-primary-deep">
-          <Zap className="size-3.5 text-primary" aria-hidden />
-          Reachable in {m.travelMin} min, {now ? formatLeft(new Date(offer.expiresAt).getTime() - now) : "…"} left · {Math.round(m.score * 100)} match
-        </p>
-      )}
-
-      <div className="mt-auto flex items-center gap-2">
-        <Button onClick={onContact} disabled={busy || upcoming} className="h-10 flex-1 rounded-xl" aria-label={`${actionLabel}: ${offer.title}`}>
-          {upcoming ? "Opens soon" : busy ? "Please wait..." : actionLabel}
-        </Button>
-        <Button variant="outline" onClick={onOpen} className="h-10 rounded-xl">
-          Details
-        </Button>
-      </div>
+      <Button onClick={onContact} disabled={busy || upcoming} className="mx-1.5 mb-1 mt-auto h-11" aria-label={`${actionLabel}: ${offer.title}`}>
+        {upcoming ? "Opens soon" : busy ? "Please wait..." : actionLabel}
+      </Button>
     </motion.article>
   );
 }

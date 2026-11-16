@@ -8,7 +8,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-display: var(--font-bricolage), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -63,78 +63,78 @@
 }
 
 :root {
-  --radius: 12px;
-  --background: #fbf7f0;
+  --radius: 14px;
+  --background: #ffffff;
   --surface: #ffffff;
-  --ink: #16251d;
-  --line: #e8e1d5;
+  --ink: #212529;
+  --line: #e6e8e8;
   --foreground: var(--ink);
   --card: var(--surface);
   --card-foreground: var(--ink);
   --popover: var(--surface);
   --popover-foreground: var(--ink);
-  --primary: #1f7a4d;
+  --primary: #088178;
   --primary-foreground: #ffffff;
-  --primary-deep: #0f3d2a;
-  --secondary: #f1ebdf;
+  --primary-deep: #032724;
+  --secondary: #f5f5f5;
   --secondary-foreground: var(--ink);
-  --muted: #f3eee3;
-  --muted-foreground: #5e6b63;
-  --accent: #fdeccb;
-  --accent-foreground: #5a3a05;
-  --saffron: #f2a33a;
-  --clay: #c8553d;
-  --info: #2f6f8f;
-  --destructive: #c8553d;
+  --muted: #f5f5f5;
+  --muted-foreground: #667085;
+  --accent: #e4f3f1;
+  --accent-foreground: #032724;
+  --saffron: #f6c445;
+  --clay: #d9534f;
+  --info: #2f80c9;
+  --destructive: #d9534f;
   --border: var(--line);
-  --input: #d9d0bf;
-  --ring: #1f7a4d;
-  --urgent-safe: #1f7a4d;
+  --input: #d5dada;
+  --ring: #088178;
+  --urgent-safe: #088178;
   --urgent-amber: #f2a33a;
   --urgent-orange: #e8742f;
   --urgent-red: #d64545;
-  --chart-1: #1f7a4d;
-  --chart-2: #f2a33a;
-  --chart-3: #2f6f8f;
-  --chart-4: #c8553d;
-  --chart-5: #0f3d2a;
+  --chart-1: #088178;
+  --chart-2: #f6c445;
+  --chart-3: #2f80c9;
+  --chart-4: #d9534f;
+  --chart-5: #032724;
   --sidebar: #ffffff;
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: #1f7a4d;
+  --sidebar-primary: #088178;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eef5ee;
-  --sidebar-accent-foreground: #0f3d2a;
+  --sidebar-accent: #e4f3f1;
+  --sidebar-accent-foreground: #032724;
   --sidebar-border: var(--line);
-  --sidebar-ring: #1f7a4d;
+  --sidebar-ring: #088178;
 }
 
 .dark {
-  --background: #0e1612;
-  --surface: #15211a;
-  --ink: #f2efe6;
-  --line: #24352b;
+  --background: #061a18;
+  --surface: #0b2523;
+  --ink: #eef4f3;
+  --line: #17403c;
   --foreground: var(--ink);
   --card: var(--surface);
   --card-foreground: var(--ink);
-  --popover: #182519;
+  --popover: #0d2b28;
   --popover-foreground: var(--ink);
-  --primary: #2fa066;
-  --primary-foreground: #04150c;
-  --primary-deep: #8fd6b0;
-  --secondary: #1b2a21;
+  --primary: #14a396;
+  --primary-foreground: #032724;
+  --primary-deep: #8fe0d6;
+  --secondary: #0f2e2b;
   --secondary-foreground: var(--ink);
-  --muted: #1b2a21;
-  --muted-foreground: #9db0a4;
-  --accent: #3a2c10;
-  --accent-foreground: #f6d9a0;
-  --saffron: #f5b052;
-  --clay: #dd6a52;
-  --info: #5aa4c6;
-  --destructive: #e0735c;
+  --muted: #0f2e2b;
+  --muted-foreground: #9bb8b4;
+  --accent: #12403b;
+  --accent-foreground: #bff0ea;
+  --saffron: #f8d062;
+  --clay: #ee7b76;
+  --info: #6aa9e0;
+  --destructive: #ee7b76;
   --border: var(--line);
-  --input: #2c4034;
-  --ring: #2fa066;
-  --urgent-safe: #3fb97d;
+  --input: #1d4a45;
+  --ring: #14a396;
+  --urgent-safe: #2dbfae;
   --urgent-amber: #f5b052;
   --urgent-orange: #f08a4b;
   --urgent-red: #ea5d5d;
@@ -143,14 +143,14 @@
   --chart-3: #5aa4c6;
   --chart-4: #dd6a52;
   --chart-5: #8fd6b0;
-  --sidebar: #111b15;
+  --sidebar: #08201e;
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: #2fa066;
-  --sidebar-primary-foreground: #04150c;
-  --sidebar-accent: #1b2a21;
-  --sidebar-accent-foreground: #8fd6b0;
+  --sidebar-primary: #14a396;
+  --sidebar-primary-foreground: #032724;
+  --sidebar-accent: #12403b;
+  --sidebar-accent-foreground: #bff0ea;
   --sidebar-border: var(--line);
-  --sidebar-ring: #2fa066;
+  --sidebar-ring: #14a396;
 }
 
 @layer base {
@@ -165,7 +165,8 @@
   }
   h1, h2, h3, .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.025em;
+    font-weight: 600;
   }
   .tabular {
     font-variant-numeric: tabular-nums;
@@ -231,4 +232,13 @@
 }
 .dark .leaflet-tile {
   filter: brightness(0.78) contrast(1.05) saturate(0.85);
+}
+
+/* Farmora-style: every button is a pill; cards use soft 20px corners */
+[data-slot="button"] {
+  border-radius: 9999px;
+}
+.bg-dots {
+  background-image: radial-gradient(color-mix(in oklab, #ffffff 24%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
 }

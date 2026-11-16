@@ -1,7 +1,7 @@
 import { Hero } from "@/components/landing/hero";
 import { LandingNav } from "@/components/landing/nav";
 import { LiveFeed } from "@/components/landing/live-feed";
-import { Faq, Footer, HowItWorks, ImpactSection, TrustStrip } from "@/components/landing/sections";
+import { CtaBand, ExpiringDeals, ExploreCategories, Faq, Footer, HowItWorks, PromoBanners, TrustStrip } from "@/components/landing/sections";
 
 export default function Home() {
   return (
@@ -9,11 +9,14 @@ export default function Home() {
       <LandingNav />
       <main id="main">
         <Hero />
+        <ExploreCategories />
         <LiveFeed />
+        <PromoBanners />
+        <ExpiringDeals />
         <HowItWorks />
         <TrustStrip />
-        <ImpactSection />
         <Faq />
+        <CtaBand />
       </main>
       <Footer />
     </>

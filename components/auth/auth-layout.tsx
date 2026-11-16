@@ -6,7 +6,7 @@ import { Logo } from "@/components/layout/logo";
 export function AuthLayout({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      <aside className="relative hidden overflow-hidden bg-deep p-12 text-white lg:flex lg:flex-col lg:justify-between" style={{ background: "linear-gradient(160deg,#0F3D2A,#1F7A4D)" }}>
+      <aside className="relative hidden overflow-hidden bg-deep p-12 text-white lg:flex lg:flex-col lg:justify-between" style={{ background: "linear-gradient(160deg,#032724,#088178)" }}>
         <div className="bg-dots absolute inset-0 opacity-30" aria-hidden />
         <svg className="absolute -bottom-10 -right-10 size-[420px] opacity-15" viewBox="0 0 200 200" fill="none" aria-hidden>
           <circle cx="100" cy="100" r="92" stroke="white" strokeWidth="2" />

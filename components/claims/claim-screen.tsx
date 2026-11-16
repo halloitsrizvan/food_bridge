@@ -179,7 +179,7 @@ export function ClaimScreen({ id }: { id: string }) {
   const failed = c.status === "DECLINED" ? "Declined" : c.status === "EXPIRED" ? "Expired" : null;
   const countdownTarget = c.status === "PENDING" ? c.holdUntil : c.offer.expiresAt;
   const mapMarkers = [
-    c.giver.lat != null && c.giver.lng != null ? { id: "giver", lat: c.giver.lat, lng: c.giver.lng, color: "#1F7A4D", label: `Giver: ${c.giver.name}`, size: 22 } : null,
+    c.giver.lat != null && c.giver.lng != null ? { id: "giver", lat: c.giver.lat, lng: c.giver.lng, color: "#088178", label: `Giver: ${c.giver.name}`, size: 22 } : null,
     c.taker.lat != null && c.taker.lng != null ? { id: "taker", lat: c.taker.lat, lng: c.taker.lng, color: "#2F6F8F", label: `Receiver: ${c.taker.name}`, size: 22 } : null,
   ].filter((m) => m !== null);
   const line = mapMarkers.length === 2 ? ([[mapMarkers[0].lat, mapMarkers[0].lng], [mapMarkers[1].lat, mapMarkers[1].lng]] as [[number, number], [number, number]]) : null;

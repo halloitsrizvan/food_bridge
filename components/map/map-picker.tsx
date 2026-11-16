@@ -51,7 +51,7 @@ export function MapPicker({ value, onChange }: { value: Pt | null; onChange: (p:
         height={280}
         zoom={value ? 15 : 12}
         center={value ? [value.lat, value.lng] : undefined}
-        markers={value ? [{ id: "me", lat: value.lat, lng: value.lng, color: "#1F7A4D", label: "Your location" }] : []}
+        markers={value ? [{ id: "me", lat: value.lat, lng: value.lng, color: "#088178", label: "Your location" }] : []}
         fit={!!value}
         onPick={onChange}
       />

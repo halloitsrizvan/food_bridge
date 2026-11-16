@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { CategoryChip, DietBadge } from "@/components/shared/badges";
@@ -11,65 +11,63 @@ import { t } from "@/lib/i18n/en";
 import { cn } from "@/lib/utils";
 import { ImpactCounters } from "./counters";
 
-function StackedCards() {
+function FloatingCard() {
   const reduce = useReducedMotion();
-  const { data, isPending } = useOffers({ sort: "soonest", limit: 3 });
-  const rot = [-3, 2, -1];
-  if (isPending) return <div className="mx-auto h-72 max-w-sm animate-pulse rounded-3xl bg-muted" aria-hidden />;
-  if (!data?.items.length)
-    return (
-      <div className="mx-auto max-w-sm rounded-3xl border border-dashed bg-surface/70 p-8 text-center text-sm text-muted-foreground">Live posts show up here the moment a giver shares surplus food.</div>
-    );
+  const { data } = useOffers({ sort: "soonest", limit: 1 });
+  const o = data?.items[0];
   return (
-    <div className="relative mx-auto h-[19rem] w-full max-w-sm" aria-label="Live food posts">
-      {data.items.slice(0, 3).map((o, i) => (
-        <motion.div
-          key={o.id}
-          initial={reduce ? false : { opacity: 0, y: 40, rotate: 0 }}
-          animate={{ opacity: 1, y: i * 62, rotate: rot[i] }}
-          transition={{ delay: 0.15 + i * 0.12, type: "spring", stiffness: 120, damping: 16 }}
-          className="absolute inset-x-0 top-0 flex items-center gap-3 rounded-2xl border bg-surface p-4 shadow-lift"
-          style={{ zIndex: 3 - i }}
-        >
-          <CategoryChip category={o.category} />
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, duration: 0.5 }}
+      className="absolute bottom-4 right-4 w-[15.5rem] rounded-3xl bg-background p-3 text-foreground shadow-lift sm:bottom-6 sm:right-6"
+    >
+      <div className="grid h-28 place-items-center rounded-2xl bg-secondary">
+        {o ? <CategoryChip category={o.category} className="size-14 rounded-2xl [&_svg]:size-7" /> : <span className="text-xs text-muted-foreground">Live posts appear here</span>}
+      </div>
+      {o ? (
+        <div className="mt-2.5 flex items-center gap-2 px-1">
           <div className="min-w-0 flex-1">
-            <p className="truncate font-display text-sm font-semibold">{o.title}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {o.quantityMeals} meals · {o.area}
-            </p>
+            <p className="truncate text-sm font-semibold">{o.title}</p>
+            <p className="text-xs text-muted-foreground">{o.quantityMeals} meals · {o.area}</p>
             <DietBadge diet={o.diet} className="mt-1" />
           </div>
-          <CountdownRing expiresAt={o.expiresAt} startAt={o.createdAt} size={52} />
-        </motion.div>
-      ))}
-    </div>
+          <CountdownRing expiresAt={o.expiresAt} startAt={o.createdAt} size={48} />
+        </div>
+      ) : null}
+    </motion.div>
   );
 }
 
 export function Hero() {
   const { data: me } = useMe();
   return (
-    <section className="relative overflow-hidden">
-      <div className="bg-dots absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" aria-hidden />
-      <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-14 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:pt-20">
-        <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <ShieldCheck className="size-4" aria-hidden /> {t.tagline} · Kozhikode pilot
-          </span>
-          <h1 className="mt-5 text-balance font-display text-4xl font-semibold leading-[1.05] text-deep sm:text-6xl">{t.landing.headline}</h1>
-          <p className="mt-5 max-w-xl text-pretty text-lg text-muted-foreground">{t.landing.sub}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={me?.role === "GIVER" ? "/dashboard/post" : "/signup"} className={cn(buttonVariants({ size: "lg" }), "h-12 gap-2 rounded-xl px-6 text-base")}>
-              {t.landing.ctaGive} <ArrowRight className="size-4" aria-hidden />
-            </Link>
-            <a href="#live" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "h-12 rounded-xl px-6 text-base")}>
-              {t.landing.ctaNeed}
-            </a>
+    <section className="mx-auto max-w-7xl px-4 pt-6">
+      <div className="relative isolate overflow-hidden rounded-[28px] text-white" style={{ background: "linear-gradient(135deg,#032724 0%,#066a62 45%,#27b3a3 100%)" }}>
+        <div className="bg-dots absolute inset-0 -z-10 opacity-40" aria-hidden />
+        <span className="pointer-events-none absolute -top-6 left-1/2 -z-10 -translate-x-1/2 select-none font-display text-[clamp(5rem,22vw,17rem)] font-extrabold leading-none tracking-tighter text-white/12" aria-hidden>
+          FOODBRIDGE
+        </span>
+        <div className="flex min-h-[26rem] flex-col justify-end gap-6 p-6 pb-8 sm:min-h-[32rem] sm:p-10 lg:min-h-[36rem]">
+          <div className="max-w-xl">
+            <h1 className="text-balance font-display text-4xl font-semibold leading-[1.05] sm:text-6xl">{t.landing.headline}</h1>
+            <p className="mt-4 max-w-md text-pretty text-sm text-white/85 sm:text-base">{t.landing.sub}</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href={me?.role === "GIVER" ? "/dashboard/post" : "/signup"} className={cn(buttonVariants(), "h-12 gap-2 bg-background pl-6 pr-2 text-base text-primary hover:bg-background/90")}>
+                {t.landing.ctaGive}
+                <span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground">
+                  <ArrowUpRight className="size-4" aria-hidden />
+                </span>
+              </Link>
+              <a href="#live" className={cn(buttonVariants({ variant: "outline" }), "h-12 border-white/40 bg-transparent px-6 text-base text-white hover:bg-white/10 hover:text-white")}>
+                {t.landing.ctaNeed}
+              </a>
+            </div>
           </div>
-          <ImpactCounters className="mt-10" />
         </div>
-        <StackedCards />
+        <FloatingCard />
       </div>
+      <ImpactCounters className="mt-5" />
     </section>
   );
 }

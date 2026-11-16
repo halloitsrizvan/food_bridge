@@ -23,7 +23,7 @@ export function GovLiveMap() {
     for (const o of data.offers) {
       const un = o.unmatched;
       if ((un && !layers.unmatched) || (!un && !layers.offers)) continue;
-      markers.push({ id: `o-${o.id}`, lat: o.lat, lng: o.lng, color: un ? "#D64545" : "#1F7A4D", pulse: un, size: un ? 24 : 18, label: o.title, popup: `${o.title} · ${o.meals} meals · ${o.giver} (${o.area}) · ${formatLeft(new Date(o.expiresAt).getTime() - now)} left${un ? " · UNMATCHED" : ""}` });
+      markers.push({ id: `o-${o.id}`, lat: o.lat, lng: o.lng, color: un ? "#D64545" : "#088178", pulse: un, size: un ? 24 : 18, label: o.title, popup: `${o.title} · ${o.meals} meals · ${o.giver} (${o.area}) · ${formatLeft(new Date(o.expiresAt).getTime() - now)} left${un ? " · UNMATCHED" : ""}` });
     }
     if (layers.needs) for (const n of data.needs) markers.push({ id: `n-${n.id}`, lat: n.lat, lng: n.lng, color: "#2F6F8F", label: n.title, popup: `${n.title} · ${n.meals} meals · ${n.taker} (${n.area})` });
     if (layers.heat) {
@@ -35,7 +35,7 @@ export function GovLiveMap() {
       };
       data.offers.forEach((o) => add(o.area, o.lat, o.lng, o.meals, 0));
       data.needs.forEach((n) => add(n.area, n.lat, n.lng, 0, n.meals));
-      for (const a of byArea.values()) circles.push({ lat: a.lat / a.n, lng: a.lng / a.n, radiusM: 350 + Math.sqrt(a.supply + a.demand) * 90, color: a.supply >= a.demand ? "#1F7A4D" : "#2F6F8F" });
+      for (const a of byArea.values()) circles.push({ lat: a.lat / a.n, lng: a.lng / a.n, radiusM: 350 + Math.sqrt(a.supply + a.demand) * 90, color: a.supply >= a.demand ? "#088178" : "#2F6F8F" });
     }
     return { markers, circles };
   }, [data, layers, now]);
@@ -45,7 +45,7 @@ export function GovLiveMap() {
   const unmatched = data.offers.filter((o) => o.unmatched);
 
   const chips: { l: Layer; label: string; dot: string }[] = [
-    { l: "offers", label: "Offers", dot: "#1F7A4D" },
+    { l: "offers", label: "Offers", dot: "#088178" },
     { l: "needs", label: "Needs", dot: "#2F6F8F" },
     { l: "unmatched", label: "Unmatched / expiring", dot: "#D64545" },
     { l: "heat", label: "Demand vs surplus", dot: "#F2A33A" },

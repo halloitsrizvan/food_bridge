@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" aria-pressed={active} onClick={onClick} className={cn("min-h-9 rounded-full border px-3.5 text-sm font-medium transition-colors", active ? "border-primary bg-primary text-primary-foreground" : "border-line bg-surface hover:border-primary/50")}>
+    <button type="button" aria-pressed={active} onClick={onClick} className={cn("min-h-9 rounded-full border px-4 text-sm font-medium transition-colors", active ? "border-primary bg-background text-primary ring-1 ring-primary" : "border-line bg-background hover:border-primary/50")}>
       {children}
     </button>
   );
@@ -47,6 +47,16 @@ export function LiveFeed() {
   const [selected, setSelected] = useState<PublicOffer | null>(null);
   const [loginFor, setLoginFor] = useState<PublicOffer | null>(null);
 
+  useEffect(() => {
+    const on = (e: Event) => {
+      const d = (e as CustomEvent<{ q?: string; category?: string; diet?: string }>).detail ?? {};
+      setQ(d.q ?? "");
+      setCategory(d.category);
+      setDiet(d.diet);
+    };
+    window.addEventListener("fb:filter", on);
+    return () => window.removeEventListener("fb:filter", on);
+  }, []);
   const dq = useDebounced(q);
   const darea = useDebounced(area);
   // page resets whenever any filter changes (derived, no effect)
@@ -64,10 +74,11 @@ export function LiveFeed() {
   }
 
   return (
-    <section id="live" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14">
+    <section id="live" className="scroll-mt-32 bg-secondary py-14">
+      <div className="mx-auto max-w-7xl px-4">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-3xl font-semibold">{t.landing.liveTitle}</h2>
+          <h2 className="font-display text-2xl font-semibold sm:text-4xl">Best Food Near You</h2>
           <p className="text-muted-foreground">{t.landing.liveSub}</p>
         </div>
         <div className="flex gap-2" role="group" aria-label="Sort">
@@ -80,7 +91,7 @@ export function LiveFeed() {
         </div>
       </div>
 
-      <div className="mb-6 space-y-3 rounded-2xl border bg-surface p-4 shadow-soft">
+      <div className="mb-6 space-y-3 rounded-[20px] border bg-background p-4">
         <div className="grid gap-3 sm:grid-cols-[1fr_14rem]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -152,6 +163,7 @@ export function LiveFeed() {
           <LoginForm compact onDone={() => { const id = loginFor?.id; setLoginFor(null); router.push(`/dashboard/offers/${id}`); router.refresh(); }} />
         </DialogContent>
       </Dialog>
+      </div>
     </section>
   );
 }
@@ -189,7 +201,7 @@ function OfferDetail({ offer, onClose, onContact, role }: { offer: PublicOffer |
             </div>
             {offer.lat != null && offer.lng != null && (
               <div>
-                <MapView height={180} zoom={13} center={[offer.lat, offer.lng]} markers={[{ id: "a", lat: offer.lat, lng: offer.lng, color: "#1F7A4D", label: `Around ${offer.area}` }]} />
+                <MapView height={180} zoom={13} center={[offer.lat, offer.lng]} markers={[{ id: "a", lat: offer.lat, lng: offer.lng, color: "#088178", label: `Around ${offer.area}` }]} />
                 <p className="mt-1.5 text-xs text-muted-foreground">Approximate area only. The exact address is shared after the giver accepts.</p>
               </div>
             )}

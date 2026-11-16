@@ -63,7 +63,7 @@ export function OfferPage({ id }: { id: string }) {
             </div>
             <TierBadge tier={o.giverTier} />
           </div>
-          {o.lat != null && o.lng != null && <MapView height={200} center={[o.lat, o.lng]} zoom={13} markers={[{ id: "a", lat: o.lat, lng: o.lng, color: "#1F7A4D", label: `Around ${o.area}` }]} />}
+          {o.lat != null && o.lng != null && <MapView height={200} center={[o.lat, o.lng]} zoom={13} markers={[{ id: "a", lat: o.lat, lng: o.lng, color: "#088178", label: `Around ${o.area}` }]} />}
 
           {me?.role === "TAKER" && (
             <>

@@ -64,7 +64,7 @@ export default function MapInner({ markers = [], circles = [], line, center, zoo
         {circles.map((c, i) => (
           <Circle key={i} center={[c.lat, c.lng]} radius={c.radiusM} pathOptions={{ color: c.color, fillColor: c.color, fillOpacity: 0.16, weight: 1 }} />
         ))}
-        {line && <Polyline positions={line} pathOptions={{ color: "#1F7A4D", weight: 3, dashArray: "8 8" }} />}
+        {line && <Polyline positions={line} pathOptions={{ color: "#088178", weight: 3, dashArray: "8 8" }} />}
         {markers.map((m) => (
           <Marker key={m.id} position={[m.lat, m.lng]} icon={icon(m)} title={m.label}>
             {(m.popup || m.label) && <Popup>{m.popup ?? m.label}</Popup>}
