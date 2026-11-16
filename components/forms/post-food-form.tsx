@@ -44,11 +44,14 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<Category>("COOKED");
-  const limits = useSafeHours().data?.safeHours ?? DEFAULT_CONFIG.safeHours;
+  const cfgData = useSafeHours().data;
+  const standard = cfgData?.safeHours ?? DEFAULT_CONFIG.safeHours; // default window
+  const limits = cfgData?.safeHoursMax ?? DEFAULT_CONFIG.safeHoursMax; // longest a giver may choose
   // Giver-edited safe window (hours). null = use the standard window for the type.
   const [safeOverride, setSafeOverride] = useState<number | null>(null);
-  const maxHours = category === "PACKAGED" ? 0 : limits[category];
-  const safeHours = category === "PACKAGED" ? 0 : Math.min(safeOverride ?? maxHours, maxHours);
+  const stdHours = category === "PACKAGED" ? 0 : standard[category];
+  const maxHours = category === "PACKAGED" ? 0 : Math.max(stdHours, limits[category]);
+  const safeHours = category === "PACKAGED" ? 0 : Math.min(safeOverride ?? stdHours, maxHours);
   const pickCategory = (c: Category) => {
     setCategory(c);
     setSafeOverride(null); // each type starts from its own standard window
@@ -69,10 +72,10 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
     if (Number.isNaN(exp.getTime())) return null;
     const ck = category === "PACKAGED" ? null : new Date(cooked);
     if (ck && Number.isNaN(ck.getTime())) return null;
-    const safe = safeUntil(category, ck, exp, { safeHours: limits }, new Date(), safeHours || undefined);
+    const safe = safeUntil(category, ck, exp, { safeHours: standard, safeHoursMax: limits }, new Date(), safeHours || undefined);
     const eff = new Date(Math.min(safe.getTime(), exp.getTime()));
     return { safe, eff, limitedBy: exp.getTime() < safe.getTime() ? "printed expiry" : category === "PACKAGED" ? "printed expiry" : `${safeHours} h after ${category === "COOKED" ? "cooking" : "prep"}` };
-  }, [category, cooked, expiry, limits, safeHours]);
+  }, [category, cooked, expiry, standard, limits, safeHours]);
   const left = preview && now ? preview.eff.getTime() - now : null;
 
   function submit(e: React.FormEvent) {
@@ -83,7 +86,7 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
       category,
       diet,
       quantityMeals: qty,
-      safeHours: category === "PACKAGED" || safeHours >= maxHours ? undefined : safeHours,
+      safeHours: category === "PACKAGED" || safeHours === stdHours ? undefined : safeHours,
       cookedAt: category === "PACKAGED" ? undefined : cooked ? new Date(cooked) : undefined,
       expectedExpiryAt: new Date(expiry),
       mode,
@@ -117,9 +120,9 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
           {err("title")}
         </div>
         <Radios label="Type of food" value={category} onChange={pickCategory} options={[
-          { v: "COOKED", title: "Cooked", sub: `Safe up to ${limits.COOKED}h`, icon: Salad },
+          { v: "COOKED", title: "Cooked", sub: `Safe ${standard.COOKED}h (up to ${Math.max(standard.COOKED, limits.COOKED)}h)`, icon: Salad },
           { v: "PACKAGED", title: "Packaged", sub: "Printed expiry", icon: Package },
-          { v: "RAW", title: "Raw", sub: `Safe up to ${limits.RAW}h`, icon: Carrot },
+          { v: "RAW", title: "Raw", sub: `Safe ${standard.RAW}h (up to ${Math.max(standard.RAW, limits.RAW)}h)`, icon: Carrot },
         ]} />
         {category !== "PACKAGED" && (
           <div className="space-y-1.5 rounded-2xl border bg-accent/40 p-4">
@@ -133,16 +136,16 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
                 max={maxHours}
                 step={0.5}
                 inputMode="decimal"
-                value={safeOverride ?? maxHours}
+                value={safeOverride ?? stdHours}
                 onChange={(e) => setSafeOverride(e.target.value === "" ? null : Math.min(maxHours, Math.max(0, Number(e.target.value))))}
                 className="h-11 w-24 rounded-xl text-center font-display text-xl tabular"
               />
               <Button type="button" variant="outline" size="icon" className="size-11" aria-label="Longer safe window" onClick={() => setSafeOverride(Math.min(maxHours, Math.round((safeHours + 0.5) * 2) / 2))}><Plus /></Button>
-              {safeOverride != null && safeOverride < maxHours && (
-                <Button type="button" variant="ghost" className="h-9" onClick={() => setSafeOverride(null)}>Reset to {maxHours}h</Button>
+              {safeOverride != null && safeOverride !== stdHours && (
+                <Button type="button" variant="ghost" className="h-9" onClick={() => setSafeOverride(null)}>Reset to {stdHours}h</Button>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">Shorten it if the food needs to go sooner (for example no refrigeration). The maximum of {maxHours}h is set by the government and cannot be exceeded.</p>
+            <p className="text-xs text-muted-foreground">Standard is {stdHours}h. Shorten it if the food needs to go sooner, or extend it (for example chilled or sealed food) up to {maxHours}h, the limit set by the government.</p>
             {err("safeHours")}
           </div>
         )}

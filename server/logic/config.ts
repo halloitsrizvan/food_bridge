@@ -1,6 +1,9 @@
 // Tunables. Defaults here; overridable at runtime through AppConfig (gov config page).
 export type Config = {
+  /** Standard safe window per type (hours). */
   safeHours: { COOKED: number; RAW: number };
+  /** Longest window a giver may choose (hours). The standard window stays the default. */
+  safeHoursMax: { COOKED: number; RAW: number };
   radiusSteps: [number, number, number]; // km: start, 50% elapsed, 75% elapsed
   escalateAt: [number, number]; // fractions of the window
   govAlertAt: number;
@@ -14,6 +17,7 @@ export type Config = {
 
 export const DEFAULT_CONFIG: Config = {
   safeHours: { COOKED: 4, RAW: 24 },
+  safeHoursMax: { COOKED: 12, RAW: 72 },
   radiusSteps: [3, 6, 10],
   escalateAt: [0.5, 0.75],
   govAlertAt: 0.8,

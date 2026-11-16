@@ -1,14 +1,17 @@
 "use client";
 
-import { ArrowRight, Check, KeyRound, X } from "lucide-react";
+import QRCode from "qrcode";
+import { ArrowRight, Check, Download, KeyRound, Loader2, ScanLine, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, CategoryChip, kindLabel } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAcceptClaim, useDeclineClaim, useHandover } from "@/lib/api/hooks";
+import { handoverQrUrl } from "@/lib/handover-qr";
+import { QrScanner } from "./qr-scanner";
 import type { ClaimView } from "@/lib/schemas/claim";
 import { cn } from "@/lib/utils";
 
@@ -21,27 +24,55 @@ export const STATUS_STYLE: Record<ClaimView["status"], string> = {
 };
 export const STATUS_LABEL: Record<ClaimView["status"], string> = { PENDING: "Waiting", ACCEPTED: "Accepted", COMPLETED: "Delivered", DECLINED: "Declined", EXPIRED: "Expired" };
 
-/** Giver-only: the code to read out at handover. */
-export function OtpDisplay({ otp }: { otp: string }) {
+/** Giver-only: the QR and the 6-digit code for the receiver, with a themed PNG download. */
+export function OtpDisplay({ otp, claimId }: { otp: string; claimId: string }) {
+  const [qr, setQr] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    QRCode.toDataURL(handoverQrUrl(window.location.origin, claimId, otp), { margin: 1, width: 320, errorCorrectionLevel: "M", color: { dark: "#032724", light: "#FFFFFF" } })
+      .then((u) => live && setQr(u))
+      .catch(() => live && setQr(null));
+    return () => {
+      live = false;
+    };
+  }, [claimId, otp]);
+
   return (
-    <div className="rounded-2xl border-2 border-dashed border-primary/50 bg-primary/8 p-4 text-center" role="status">
+    <div className="rounded-2xl border-2 border-dashed border-primary/50 bg-accent/50 p-4 text-center" role="status">
       <p className="flex items-center justify-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
-        <KeyRound className="size-4" aria-hidden /> Give this code to the receiver
+        <KeyRound className="size-4" aria-hidden /> Show this to the receiver
       </p>
-      <p className="mt-1 font-display text-4xl font-semibold tabular tracking-[0.3em] text-deep" aria-label={`Code ${otp.split("").join(" ")}`}>
+      <div className="mx-auto mt-3 grid size-44 place-items-center rounded-2xl bg-white p-2 shadow-soft sm:size-52">
+        {qr ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={qr} alt="Handover QR code" className="size-full" width={320} height={320} />
+        ) : (
+          <Loader2 className="size-6 animate-spin text-muted-foreground" aria-label="Preparing QR" />
+        )}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">They scan the QR, or type this code</p>
+      <p className="font-display text-4xl font-semibold tabular tracking-[0.3em] text-deep" aria-label={`Code ${otp.split("").join(" ")}`}>
         {otp}
       </p>
+      <a
+        href={`/api/v1/claims/${claimId}/qr`}
+        download={`foodbridge-handover-${claimId.slice(0, 8)}.png`}
+        className={cn(buttonVariants({ variant: "outline" }), "mt-3 h-10 gap-2")}
+      >
+        <Download className="size-4" aria-hidden /> Download as PNG
+      </a>
     </div>
   );
 }
 
-/** Taker-only: enter the giver's code to complete the handover. */
-export function OtpEntry({ claimId, onDone }: { claimId: string; onDone?: (r: { claim: ClaimView; pointsAwarded: number }) => void }) {
-  const [otp, setOtp] = useState("");
+/** Taker-only: finish the handover with the giver's 6-digit code OR by scanning their QR. */
+export function OtpEntry({ claimId, initialCode, onDone }: { claimId: string; initialCode?: string; onDone?: (r: { claim: ClaimView; pointsAwarded: number }) => void }) {
+  const [otp, setOtp] = useState(initialCode && /^\d{6}$/.test(initialCode) ? initialCode : "");
+  const [scanning, setScanning] = useState(false);
   const handover = useHandover();
-  const submit = () =>
+  const finish = (code: string) =>
     handover.mutate(
-      { id: claimId, otp },
+      { id: claimId, otp: code },
       {
         onSuccess: (r) => {
           toast.success("Handover confirmed");
@@ -50,33 +81,50 @@ export function OtpEntry({ claimId, onDone }: { claimId: string; onDone?: (r: { 
         onError: (e) => toast.error(e.message),
       },
     );
+  const onScan = useCallback(
+    (r: { claimId: string; code: string }) => {
+      if (r.claimId !== claimId.toLowerCase()) return void toast.error("That QR belongs to a different handover.");
+      setOtp(r.code);
+      finish(r.code);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [claimId],
+  );
   return (
-    <form
-      className="space-y-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (otp.length === 6) submit();
-      }}
-    >
-      <label htmlFor={`otp-${claimId}`} className="text-sm font-medium">
-        Enter the 6-digit code from the giver
-      </label>
-      <div className="flex gap-2">
-        <Input
-          id={`otp-${claimId}`}
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          maxLength={6}
-          value={otp}
-          onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-          placeholder="••••••"
-          className="h-12 rounded-xl text-center font-display text-2xl tracking-[0.35em] tabular"
-        />
-        <Button type="submit" disabled={otp.length !== 6 || handover.isPending} className="h-12 rounded-xl px-5">
-          {handover.isPending ? "Checking..." : "Confirm"}
-        </Button>
-      </div>
-    </form>
+    <div className="space-y-3">
+      <Button type="button" className="h-12 w-full gap-2 text-base" onClick={() => setScanning(true)} disabled={handover.isPending}>
+        <ScanLine className="size-5" aria-hidden /> Scan the giver&apos;s QR
+      </Button>
+      <p className="text-center text-xs text-muted-foreground">or enter the 6-digit code</p>
+      <form
+        className="space-y-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (otp.length === 6) finish(otp);
+        }}
+      >
+        <label htmlFor={`otp-${claimId}`} className="sr-only">
+          6-digit code from the giver
+        </label>
+        <div className="flex gap-2">
+          <Input
+            id={`otp-${claimId}`}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={6}
+            value={otp}
+            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            placeholder="••••••"
+            className="h-12 rounded-xl text-center font-display text-2xl tracking-[0.35em] tabular"
+          />
+          <Button type="submit" disabled={otp.length !== 6 || handover.isPending} className="h-12 px-5">
+            {handover.isPending ? "Checking..." : "Confirm"}
+          </Button>
+        </div>
+        {initialCode && otp === initialCode && <p className="text-xs text-primary">Code filled from the QR you opened. Tap Confirm.</p>}
+      </form>
+      <QrScanner open={scanning} onOpenChange={setScanning} onScan={onScan} />
+    </div>
   );
 }
 
@@ -121,7 +169,7 @@ export function ClaimCard({ claim, className }: { claim: ClaimView; className?: 
         </div>
       )}
 
-      {claim.otp && <div className="mt-3"><OtpDisplay otp={claim.otp} /></div>}
+      {claim.otp && <div className="mt-3"><OtpDisplay otp={claim.otp} claimId={claim.id} /></div>}
       {claim.can.handover && <div className="mt-3"><OtpEntry claimId={claim.id} /></div>}
 
       <Link href={`/dashboard/claims/${claim.id}`} className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">

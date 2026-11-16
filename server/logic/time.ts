@@ -5,20 +5,21 @@ const HOUR = 3_600_000;
 
 /**
  * COOKED: cookedAt + 4h, RAW: + 24h, PACKAGED: the printed expiry.
- * A giver may shorten the window (`hoursOverride`); it can never exceed the configured maximum.
+ * A giver may change the window (`hoursOverride`) within 0.5h .. the configured maximum for that type.
  */
 export function safeUntil(
   category: Category,
   cookedAt: Date | null,
   expectedExpiryAt: Date,
-  cfg: Pick<Config, "safeHours">,
+  cfg: Pick<Config, "safeHours"> & Partial<Pick<Config, "safeHoursMax">>,
   now = new Date(),
   hoursOverride?: number,
 ): Date {
   if (category === "PACKAGED") return expectedExpiryAt;
   const base = cookedAt ?? now;
-  const max = cfg.safeHours[category];
-  const hours = hoursOverride && hoursOverride > 0 ? Math.min(hoursOverride, max) : max;
+  const standard = cfg.safeHours[category];
+  const max = Math.max(standard, cfg.safeHoursMax?.[category] ?? standard);
+  const hours = hoursOverride && hoursOverride > 0 ? Math.min(hoursOverride, max) : standard;
   return new Date(base.getTime() + hours * HOUR);
 }
 

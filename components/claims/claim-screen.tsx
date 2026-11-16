@@ -157,7 +157,7 @@ function Celebration({ claim, open, onClose }: { claim: ClaimView; open: boolean
   );
 }
 
-export function ClaimScreen({ id }: { id: string }) {
+export function ClaimScreen({ id, initialCode }: { id: string; initialCode?: string }) {
   const { data: c, isPending, isError, error, refetch } = useClaim(id);
   const accept = useAcceptClaim();
   const decline = useDeclineClaim();
@@ -265,9 +265,9 @@ export function ClaimScreen({ id }: { id: string }) {
           </div>
         )}
         {c.status === "PENDING" && !c.can.accept && <p className="text-sm text-muted-foreground">Waiting for <b>{other.name}</b> to respond. This request releases automatically when the hold ends.</p>}
-        {c.otp && <OtpDisplay otp={c.otp} />}
+        {c.otp && <OtpDisplay otp={c.otp} claimId={c.id} />}
         {c.status === "ACCEPTED" && c.viewerRole === "GIVER" && !c.otp && <p className="text-sm text-muted-foreground">The code has expired with the food.</p>}
-        {c.can.handover && <OtpEntry claimId={c.id} onDone={() => setCelebrate(true)} />}
+        {c.can.handover && <OtpEntry claimId={c.id} initialCode={initialCode} onDone={() => setCelebrate(true)} />}
         {c.status === "ACCEPTED" && c.viewerRole === "TAKER" && !c.can.handover && <p className="text-sm text-muted-foreground">This code window has closed.</p>}
         {c.status === "COMPLETED" && (
           <div className="flex flex-wrap items-center gap-2">

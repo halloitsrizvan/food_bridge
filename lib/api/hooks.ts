@@ -30,7 +30,7 @@ export const useOffers = (f: OfferFilters) =>
 export const useOffer = (id: string) => useQuery({ queryKey: ["offer", id], queryFn: () => api<PublicOffer>(`/api/v1/offers/${id}`), refetchInterval: 20_000 });
 
 export const useSafeHours = () =>
-  useQuery({ queryKey: ["public-config"], queryFn: () => api<{ safeHours: { COOKED: number; RAW: number } }>("/api/v1/config"), staleTime: 5 * 60_000 });
+  useQuery({ queryKey: ["public-config"], queryFn: () => api<{ safeHours: { COOKED: number; RAW: number }; safeHoursMax: { COOKED: number; RAW: number } }>("/api/v1/config"), staleTime: 5 * 60_000 });
 
 // ---- me
 export function useMe() {

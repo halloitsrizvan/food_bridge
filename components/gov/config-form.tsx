@@ -10,6 +10,7 @@ import { useGovConfig, useSaveConfig } from "@/lib/api/hooks";
 
 type Cfg = {
   safeHours: { COOKED: number; RAW: number };
+  safeHoursMax: { COOKED: number; RAW: number };
   radiusSteps: [number, number, number];
   escalateAt: [number, number];
   govAlertAt: number;
@@ -49,6 +50,8 @@ function Editor({ initial }: { initial: Cfg }) {
       <Group title="Food safety">
         <Num label="Cooked food safe (hours)" step={0.5} value={c.safeHours.COOKED} onChange={(n) => up("safeHours", { ...c.safeHours, COOKED: n })} />
         <Num label="Raw ingredients safe (hours)" value={c.safeHours.RAW} onChange={(n) => up("safeHours", { ...c.safeHours, RAW: n })} />
+        <Num label="Longest cooked window a giver may set (hours)" step={0.5} value={c.safeHoursMax.COOKED} onChange={(n) => up("safeHoursMax", { ...c.safeHoursMax, COOKED: n })} />
+        <Num label="Longest raw window a giver may set (hours)" value={c.safeHoursMax.RAW} onChange={(n) => up("safeHoursMax", { ...c.safeHoursMax, RAW: n })} />
         <Num label="Travel speed (km/h)" value={c.speedKmh} onChange={(n) => up("speedKmh", n)} />
         <Num label="Safety buffer (min)" value={c.bufferMin} onChange={(n) => up("bufferMin", n)} />
       </Group>

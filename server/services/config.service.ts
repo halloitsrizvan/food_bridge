@@ -7,6 +7,7 @@ let cache: { at: number; value: Config } | null = null;
 export const ConfigPatchSchema = z
   .object({
     safeHours: z.object({ COOKED: z.number().min(0.5).max(48), RAW: z.number().min(1).max(168) }).partial(),
+    safeHoursMax: z.object({ COOKED: z.number().min(0.5).max(72), RAW: z.number().min(1).max(336) }).partial(),
     radiusSteps: z.tuple([z.number().min(0.5).max(50), z.number().min(0.5).max(50), z.number().min(0.5).max(50)]),
     escalateAt: z.tuple([z.number().min(0.1).max(0.95), z.number().min(0.1).max(0.99)]),
     govAlertAt: z.number().min(0.1).max(0.99),
@@ -39,7 +40,7 @@ export const configService = {
     const current = await this.get();
     const next = mergeConfig({ ...current, ...patch } as Record<string, unknown>);
     // keep nested sections merged, not replaced
-    for (const k of ["safeHours", "points", "suspension", "impact"] as const) {
+    for (const k of ["safeHours", "safeHoursMax", "points", "suspension", "impact"] as const) {
       if (patch[k]) (next as Record<string, unknown>)[k] = { ...current[k], ...patch[k] };
     }
     await trustRepository.setConfig(next as never);

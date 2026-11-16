@@ -17,7 +17,7 @@ import { maintenanceService } from "./maintenance.service";
 import { notificationService } from "./notification.service";
 import { trustService } from "./trust.service";
 
-const otpSecret = () => process.env.OTP_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || "dev-only-secret";
+import { otpSecret } from "../lib/otp-secret";
 
 function party(p: Profile, revealed: boolean): Party {
   return {
