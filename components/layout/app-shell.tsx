@@ -113,16 +113,17 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
         <Link href="/" className="mb-6 px-2">
           <Logo />
         </Link>
-        <nav className="mb-4 mt-auto flex flex-col gap-1" aria-label="Main">
+        <nav className="flex flex-1 flex-col gap-1" aria-label="Main">
           {items.map((n) => (
             <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors", active(n.href) ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
               <n.icon className="size-5" aria-hidden /> {n.label}
             </Link>
           ))}
-          <Link href="/" className="mt-2 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted">
-            <Home className="size-5" aria-hidden /> Public feed
-          </Link>
         </nav>
+        {/* only the public feed link sits at the bottom, right above the profile card */}
+        <Link href="/" className="mb-3 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted">
+          <Home className="size-5" aria-hidden /> Public feed
+        </Link>
         <div className="rounded-2xl border bg-surface p-3">
           <div className="flex items-center gap-2.5">
             <Avatar name={user.name} kind={user.giverKind ?? user.takerKind} />

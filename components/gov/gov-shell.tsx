@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Gavel, LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/components/layout/logo";
@@ -16,7 +16,6 @@ const NAV = [
   { href: "/gov/map", label: "Live map", icon: Map },
   { href: "/gov/users", label: "Users", icon: Users },
   { href: "/gov/complaints", label: "Complaints", icon: MessageSquareWarning },
-  { href: "/gov/appeals", label: "Appeals", icon: Gavel },
   { href: "/gov/config", label: "Config", icon: Settings2 },
 ];
 
