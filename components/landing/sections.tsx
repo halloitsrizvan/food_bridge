@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ChevronLeft, ChevronRight, Carrot, Drumstick, Handshake, HeartHandshake, Leaf, Package, Plus, Radar, Salad, Soup, Timer, } from "lucide-react";
+import { ArrowUpRight, Landmark, ChevronLeft, ChevronRight, Carrot, Drumstick, Handshake, HeartHandshake, Leaf, Package, Plus, Radar, Salad, Soup, Timer, } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { Logo } from "@/components/layout/logo";
@@ -234,6 +234,10 @@ export function Footer() {
           <Link href="/login" className={cn(buttonVariants({ variant: "ghost" }), "h-10 text-white hover:bg-white/10 hover:text-white")}>Log in</Link>
           <Link href="/signup" className={cn(buttonVariants(), "h-10 bg-white text-[#032724] hover:bg-white/90")}>Join</Link>
         </div>
+      </div>
+      <div className="mx-auto flex max-w-[1680px] flex-col gap-2 border-t border-white/10 px-4 py-5 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <p className="flex items-center gap-2"><Landmark className="size-4 text-saffron" aria-hidden /> Run by the District Food Authority as a public food-security programme.</p>
+        <p>Prototype built for a hackathon. Not an official government website or service.</p>
       </div>
       <p className="pointer-events-none select-none overflow-hidden text-center font-display text-[clamp(4rem,19vw,16rem)] font-extrabold leading-[0.85] tracking-tighter text-white/12" aria-hidden>FoodBridge</p>
     </footer>

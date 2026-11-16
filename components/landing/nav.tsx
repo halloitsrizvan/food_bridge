@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, HeartHandshake, LayoutGrid, Menu, Search, X } from "lucide-react";
+import { ArrowUpRight, HeartHandshake, Landmark, LayoutGrid, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/logo";
@@ -44,6 +44,13 @@ export function LandingNav() {
 
   return (
     <header className="sticky top-0 z-50 bg-background">
+      <div className="flex items-center justify-center gap-2 bg-[#032724] px-3 py-1.5 text-[11px] text-white/90 sm:text-xs">
+        <Landmark className="size-3.5 shrink-0 text-saffron" aria-hidden />
+        <span className="truncate">
+          <b className="font-semibold text-white">A Government initiative</b> for public food-surplus management
+          <span className="hidden sm:inline"> · Hackathon prototype, not an official government service</span>
+        </span>
+      </div>
       <div className="bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-[13px]">
         Surplus food is matched and handed over within <b className="text-saffron">20 minutes</b>{" "}
         {loc.place ? (
