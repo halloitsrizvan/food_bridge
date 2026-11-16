@@ -109,13 +109,27 @@ async function main() {
     { g: GIVERS[8].email, title: "Fresh produce basket", cat: "RAW", diet: "VEG", meals: 18, expiresInMin: 600, mode: "TAKER_PICKS_UP" },
   ];
   let createdOffers = 0;
+  let refreshed = 0;
   for (const o of OFFERS) {
     const giverId = giverIds[o.g];
-    if (await prisma.offer.findFirst({ where: { giverId, title: o.title } })) continue;
     const cooked = o.cookedAgoMin != null ? at(-o.cookedAgoMin) : null;
     const expectedExpiryAt = o.cat === "PACKAGED" || o.cat === "RAW" ? at(o.expiresInMin) : at(o.expiresInMin + 120);
     const safe = o.cat === "COOKED" && cooked ? safeUntil("COOKED", cooked, expectedExpiryAt, DEFAULT_CONFIG) : o.cat === "RAW" ? at(o.expiresInMin) : expectedExpiryAt;
     const start = o.escalate ? at(-200) : at(-Math.min(30, o.expiresInMin / 3));
+    const existing = await prisma.offer.findFirst({ where: { giverId, title: o.title } });
+    if (existing) {
+      // refresh stale demo posts so the demo always has live food (never touch a post that is in an active claim)
+      const active = await prisma.claim.count({ where: { offerId: existing.id, status: { in: ["PENDING", "ACCEPTED"] } } });
+      const stale = existing.status === "EXPIRED" || existing.status === "CANCELLED" || (existing.status === "OPEN" && existing.expectedExpiryAt < at(30));
+      if (!active && stale) {
+        await prisma.offer.update({
+          where: { id: existing.id },
+          data: { status: "OPEN", cookedAt: cooked, expectedExpiryAt, safeUntil: safe, createdAt: start, escalationLevel: o.scheduledInMin ? -1 : o.escalate ? 1 : 0, govAlerted: false, scheduledFor: o.scheduledInMin ? at(o.scheduledInMin) : null },
+        });
+        refreshed++;
+      }
+      continue;
+    }
     await prisma.offer.create({
       data: {
         giverId, title: o.title, description: "", category: o.cat, diet: o.diet, quantityMeals: o.meals, cookedAt: cooked, expectedExpiryAt, safeUntil: safe, mode: o.mode,
@@ -137,7 +151,14 @@ async function main() {
   let createdNeeds = 0;
   for (const n of NEEDS) {
     const takerId = takerIds[n.t.email];
-    if (await prisma.need.findFirst({ where: { takerId, title: n.title } })) continue;
+    const existingNeed = await prisma.need.findFirst({ where: { takerId, title: n.title } });
+    if (existingNeed) {
+      if (["EXPIRED", "CANCELLED"].includes(existingNeed.status) || (existingNeed.status === "OPEN" && existingNeed.neededBy < at(60))) {
+        await prisma.need.update({ where: { id: existingNeed.id }, data: { status: "OPEN", neededFrom: at(-10), neededBy: at(n.byMin) } });
+        refreshed++;
+      }
+      continue;
+    }
     await prisma.need.create({ data: { takerId, title: n.title, notes: "", diet: n.diet, mealsNeeded: n.meals, neededFrom: at(-10), neededBy: at(n.byMin), mode: n.mode } });
     createdNeeds++;
   }
@@ -190,7 +211,7 @@ async function main() {
     createdComplaints++;
   }
 
-  console.log(`\nSeed done in ${((Date.now() - t0) / 1000).toFixed(1)}s: ${createdOffers} offers, ${createdNeeds} needs, ${createdClaims} completed claims, ${createdComplaints} complaints created.\n`);
+  console.log(`\nSeed done in ${((Date.now() - t0) / 1000).toFixed(1)}s: ${createdOffers} offers, ${createdNeeds} needs, ${refreshed} refreshed, ${createdClaims} completed claims, ${createdComplaints} complaints created.\n`);
   console.log("Demo accounts (password for ALL: " + PASSWORD + ")");
   console.log("  GOV    gov@foodbridge.demo");
   console.log("  GIVER  " + GIVERS.map((g) => g.email).join("\n         "));
