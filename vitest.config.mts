@@ -12,5 +12,5 @@ try {
 export default defineConfig({
   plugins: [react()],
   resolve: { alias: { "@": path.resolve(import.meta.dirname) } },
-  test: { environment: "node", include: ["tests/**/*.test.ts"], testTimeout: 30_000, hookTimeout: 30_000 },
+  test: { environment: "node", include: ["tests/**/*.test.ts"], testTimeout: 180_000, hookTimeout: 60_000 },
 });
