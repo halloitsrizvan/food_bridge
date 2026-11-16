@@ -14,7 +14,6 @@ export type LocState = {
 
 const KEY = "fb:location:v2";
 const TTL_PRECISE = 6 * 3_600_000;
-const TTL_APPROX = 10 * 60_000; // retry precise location soon
 const IDLE: LocState = { status: "idle", lat: null, lng: null, place: null, approximate: false };
 let state: LocState = IDLE;
 let started = false;
@@ -30,7 +29,8 @@ function readCache(): LocState | null {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const c = JSON.parse(raw) as { at: number; lat: number; lng: number; place: string | null; approximate: boolean };
-    const ttl = c.approximate ? TTL_APPROX : TTL_PRECISE;
+    if (c.approximate) return null; // approximate (IP) entries from older builds are never reused
+    const ttl = TTL_PRECISE;
     return Date.now() - c.at < ttl ? { status: "granted", lat: c.lat, lng: c.lng, place: c.place, approximate: c.approximate } : null;
   } catch {
     return null;
@@ -57,23 +57,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string | null> 
   }
 }
 
-/** City-level fallback from the network when the device will not share its position. */
-async function ipFallback(status: LocState["status"]) {
-  try {
-    const r = await fetch("/api/v1/geo/ip");
-    const j = (await r.json()) as { data?: { lat: number; lng: number; place: string | null } };
-    if (j.data) {
-      set({ status, lat: j.data.lat, lng: j.data.lng, place: j.data.place, approximate: true });
-      writeCache(state);
-      return true;
-    }
-  } catch {
-    /* offline */
-  }
-  return false;
-}
-
-const BLOCKED_HELP = "Location is blocked for this site. Click the lock icon in the address bar, set Location to Allow, then reload. Showing an approximate area meanwhile.";
+const BLOCKED_HELP = "Location is blocked for this site. Click the lock icon in the address bar, set Location to Allow, then reload.";
 
 function getPosition(opts: PositionOptions) {
   return new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, opts));
@@ -88,10 +72,7 @@ export async function requestLocation(force = false) {
     const cached = readCache();
     if (cached) return set(cached);
   }
-  if (!("geolocation" in navigator)) {
-    await ipFallback("unavailable");
-    return;
-  }
+  if (!("geolocation" in navigator)) return set({ status: "unavailable" });
   set({ status: "asking" });
   try {
     let pos: GeolocationPosition;
@@ -109,8 +90,7 @@ export async function requestLocation(force = false) {
     writeCache(state);
   } catch (e) {
     const denied = (e as GeolocationPositionError).code === 1;
-    const got = await ipFallback(denied ? "denied" : "unavailable");
-    if (!got) set({ status: denied ? "denied" : "unavailable" });
+    set({ status: denied ? "denied" : "unavailable" });
     if (force) toast.error(denied ? BLOCKED_HELP : "Your device could not find its position. Check that Windows/phone location services are on.", { duration: 9000 });
   }
 }

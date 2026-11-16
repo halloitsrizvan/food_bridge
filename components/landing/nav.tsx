@@ -49,14 +49,6 @@ export function LandingNav() {
         {loc.place ? (
           <>
             near <b>{loc.place}</b>
-            {loc.approximate && (
-              <>
-                {" "}(approx.) ·{" "}
-                <button type="button" onClick={() => requestLocation(true)} className="font-semibold underline underline-offset-2">
-                  use precise location
-                </button>
-              </>
-            )}
           </>
         ) : loc.status === "asking" ? (
           "near you (locating...)"
