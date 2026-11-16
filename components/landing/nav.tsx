@@ -55,23 +55,27 @@ export function LandingNav() {
           </div>
         </div>
       </div>
-      <div className="bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-[13px]">
-        Surplus food is matched and handed over within <b className="text-saffron">20 minutes</b>{" "}
-        {loc.place ? (
-          <>
-            near <b>{loc.place}</b>
-          </>
-        ) : loc.status === "asking" ? (
-          "near you (locating...)"
-        ) : (
-          <>
-            in your area ·{" "}
-            <button type="button" onClick={() => requestLocation(true)} className="font-semibold underline underline-offset-2">
-              use my location
-            </button>
-          </>
-        )}{" "}
-        · <b>Free, government run</b>
+      <div className={cn("grid grid-rows-[1fr] transition-[grid-template-rows] duration-300", scrolled && "max-md:grid-rows-[0fr]")}>
+        <div className={cn("min-h-0 overflow-hidden", scrolled && "max-md:invisible")}>
+        <div className="bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-[13px]">
+          Surplus food is matched and handed over within <b className="text-saffron">20 minutes</b>{" "}
+          {loc.place ? (
+            <>
+              near <b>{loc.place}</b>
+            </>
+          ) : loc.status === "asking" ? (
+            "near you (locating...)"
+          ) : (
+            <>
+              in your area ·{" "}
+              <button type="button" onClick={() => requestLocation(true)} className="font-semibold underline underline-offset-2">
+                use my location
+              </button>
+            </>
+          )}{" "}
+          · <b>Free, government run</b>
+        </div>
+        </div>
       </div>
       <div className="border-b">
         <div className={cn("mx-auto flex max-w-[1680px] items-center gap-4 px-4 transition-[height] duration-300 sm:px-8", scrolled ? "h-16" : "h-[72px]")}>
