@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Logo } from "@/components/layout/logo";
 import { MapPicker } from "@/components/map/map-picker";
@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api/client";
 import { KIND_LABEL } from "@/lib/format";
+import { reverseGeocodeFull } from "@/lib/geocode";
 import { OnboardSchema } from "@/lib/schemas/profile";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +35,22 @@ export function OnboardingWizard({ role, defaultName }: { role: "GIVER" | "TAKER
   const [errs, setErrs] = useState<Errs>({});
   const [f, setF] = useState({ name: defaultName.includes("@") ? "" : defaultName, kind: kinds[0], mapsUrl: "", address: "", area: "", members: "" });
   const [pt, setPt] = useState<{ lat: number; lng: number } | null>(null);
-  const set = (k: keyof typeof f, v: string) => setF((s) => ({ ...s, [k]: v }));
+  // Area / address are filled from the pin, but never overwrite something the user typed themselves.
+  const typed = useRef({ area: false, address: false });
+  const [geoBusy, setGeoBusy] = useState(false);
+  const set = (k: keyof typeof f, v: string) => {
+    if (k === "area" || k === "address") typed.current[k] = true;
+    setF((s) => ({ ...s, [k]: v }));
+  };
+  async function pick(p: { lat: number; lng: number }) {
+    setPt(p);
+    setGeoBusy(true);
+    const g = await reverseGeocodeFull(p.lat, p.lng);
+    setGeoBusy(false);
+    if (!g) return;
+    setF((s) => ({ ...s, area: typed.current.area ? s.area : g.area || s.area, address: typed.current.address ? s.address : g.address || s.address }));
+    setErrs((e) => ({ ...e, area: "", address: "" }));
+  }
 
   function validate(upTo: number): boolean {
     const candidate = {
@@ -139,16 +155,16 @@ export function OnboardingWizard({ role, defaultName }: { role: "GIVER" | "TAKER
                 <>
                   <div>
                     <h2 className="font-display text-2xl font-semibold">Where are you?</h2>
-                    <p className="text-sm text-muted-foreground">Used to find the nearest match. Your exact address stays private until a handover is accepted.</p>
+                    <p className="text-sm text-muted-foreground">Used to find the nearest match. Pin your location and we fill the area and address for you. Your exact address stays private until a handover is accepted.</p>
                   </div>
-                  <MapPicker value={pt} onChange={setPt} />
+                  <MapPicker value={pt} onChange={pick} />
                   {(errs.lat || errs.lng) && (
                     <p role="alert" className="text-sm text-clay">
                       Pin your location on the map
                     </p>
                   )}
                   <div className="space-y-1.5">
-                    <Label htmlFor="area">Area / locality</Label>
+                    <Label htmlFor="area">Area / locality {geoBusy && <span className="font-normal text-muted-foreground">· filling from your pin...</span>}</Label>
                     <Input id="area" value={f.area} onChange={(e) => set("area", e.target.value)} placeholder="e.g. Mavoor Road" className="h-11 rounded-xl" />
                     {err("area")}
                   </div>
