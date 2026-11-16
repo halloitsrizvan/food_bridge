@@ -1,5 +1,5 @@
 import type { Profile } from "@prisma/client";
-import type { CreateOffer, OfferWithMatch, PublicOffer } from "@/lib/schemas/food";
+import type { CreateOffer, OfferWithMatch, PublicOffer, UpdateOffer } from "@/lib/schemas/food";
 import { AppError } from "../lib/errors";
 import { approx, boundingBox, haversineKm } from "../logic/geo";
 import { radiusFor } from "../logic/escalation";
@@ -148,13 +148,42 @@ export const offerService = {
   async listMine(giver: Profile) {
     await maintenanceService.sweepIfStale();
     const rows = await offerRepository.listByGiver(giver.id);
-    return rows.map((o) => ({ ...toPublicOffer(o), claimId: o.claims[0]?.id ?? null, claimStatus: o.claims[0]?.status ?? null }));
+    return rows.map((o) => ({
+      ...toPublicOffer(o),
+      claimId: o.claims[0]?.id ?? null,
+      claimStatus: o.claims[0]?.status ?? null,
+      // editable fields for the edit form
+      cookedAt: o.cookedAt?.toISOString() ?? null,
+      expectedExpiryAt: o.expectedExpiryAt.toISOString(),
+      safeHoursSet: o.cookedAt && o.category !== "PACKAGED" ? Math.round(((o.safeUntil.getTime() - o.cookedAt.getTime()) / 3_600_000) * 2) / 2 : null,
+    }));
   },
 
-  async update(giver: Profile, id: string, patch: { title?: string; description?: string; quantityMeals?: number; mode?: "GIVER_DELIVERS" | "TAKER_PICKS_UP" | "EITHER"; photoUrl?: string | null }) {
+  /** Edit an OPEN post. Times are re-validated and the safe-until time is recomputed with the same rules as creation. */
+  async update(giver: Profile, id: string, patch: UpdateOffer) {
     const o = await ownOffer(giver, id);
     if (o.status !== "OPEN") throw AppError.conflict("Only open posts can be edited");
-    const updated = await offerRepository.update(id, patch);
+    const data: Parameters<typeof offerRepository.update>[1] = {};
+    if (patch.title !== undefined) data.title = patch.title;
+    if (patch.description !== undefined) data.description = patch.description;
+    if (patch.diet !== undefined) data.diet = patch.diet;
+    if (patch.quantityMeals !== undefined) data.quantityMeals = patch.quantityMeals;
+    if (patch.mode !== undefined) data.mode = patch.mode;
+    if (patch.photoUrl !== undefined) data.photoUrl = patch.photoUrl;
+
+    if (patch.cookedAt !== undefined || patch.expectedExpiryAt !== undefined || patch.safeHours !== undefined) {
+      const cfg = await configService.get();
+      const now = new Date();
+      const cookedAt = o.category === "PACKAGED" ? null : (patch.cookedAt ?? o.cookedAt);
+      const expected = patch.expectedExpiryAt ?? o.expectedExpiryAt;
+      if (cookedAt && cookedAt.getTime() > now.getTime() + 5 * 60_000) throw AppError.badRequest("Cooked time cannot be in the future");
+      const safe = safeUntil(o.category, cookedAt, expected, cfg, now, patch.safeHours);
+      if (Math.min(safe.getTime(), expected.getTime()) <= now.getTime()) throw AppError.badRequest("These times leave the food already past its safe time", { safeUntil: safe.toISOString() });
+      data.cookedAt = cookedAt;
+      data.expectedExpiryAt = expected;
+      data.safeUntil = safe;
+    }
+    const updated = await offerRepository.update(id, data);
     return toPublicOffer({ ...o, ...updated });
   },
 

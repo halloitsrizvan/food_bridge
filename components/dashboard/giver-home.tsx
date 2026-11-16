@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trophy } from "lucide-react";
+import { Pencil, Plus, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -92,9 +92,16 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
                   <CountdownRing expiresAt={o.expiresAt} startAt={o.createdAt} size={52} />
                 </div>
                 <StatusStepper steps={OFFER_STEPS} current={offerStep(o.status)} />
-                <Link href={o.claimId ? `/dashboard/claims/${o.claimId}` : `/dashboard/offers/${o.id}`} className="text-sm font-medium text-primary hover:underline">
-                  {o.claimId ? "Open handover" : "See matches"}
-                </Link>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <Link href={o.claimId ? `/dashboard/claims/${o.claimId}` : `/dashboard/offers/${o.id}`} className="text-sm font-medium text-primary hover:underline">
+                    {o.claimId ? "Open handover" : "See matches"}
+                  </Link>
+                  {o.status === "OPEN" && (
+                    <Link href={`/dashboard/offers/${o.id}/edit`} className="inline-flex items-center gap-1 text-sm font-medium text-foreground/80 hover:text-primary">
+                      <Pencil className="size-3.5" aria-hidden /> Edit
+                    </Link>
+                  )}
+                </div>
               </article>
             ))}
           </div>

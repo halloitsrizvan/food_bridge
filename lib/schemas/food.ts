@@ -43,11 +43,17 @@ export const UpdateOfferSchema = z
   .object({
     title: z.string().trim().min(3).max(80),
     description: z.string().trim().max(500),
+    diet: DietSchema,
     quantityMeals: z.number().int().min(1).max(5000),
     mode: ModeSchema,
     photoUrl: z.url().max(500).nullable(),
+    // changing any of these recomputes the safe-until time
+    cookedAt: z.coerce.date(),
+    expectedExpiryAt: z.coerce.date(),
+    safeHours: z.number().min(0.5).max(72),
   })
   .partial();
+export type UpdateOffer = z.infer<typeof UpdateOfferSchema>;
 
 export const CreateNeedSchema = z
   .object({

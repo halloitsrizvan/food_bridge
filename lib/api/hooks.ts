@@ -11,7 +11,7 @@ export type Page<T> = { items: T[]; total: number; page: number; limit: number; 
 export type Impact = { meals: number; kg: number; co2Kg: number; handovers: number; activePosts: number; avgMatchMinutes: number | null };
 export type LeaderRow = { rank: number; name: string; kind: string | null; area: string; points: number; meals: number };
 export type Notif = { id: string; type: string; title: string; body: string; link: string; readAt: string | null; createdAt: string };
-export type MyOffer = PublicOffer & { claimId: string | null; claimStatus: string | null };
+export type MyOffer = PublicOffer & { claimId: string | null; claimStatus: string | null; cookedAt: string | null; expectedExpiryAt: string; safeHoursSet: number | null };
 export type TakerSuggestion = { takerId: string; name: string; kind: string | null; members: number | null; area: string; lat: number | null; lng: number | null; match: MatchInfo; radiusKm: number };
 
 const qs = (o: Record<string, string | number | undefined>) => {
@@ -30,7 +30,7 @@ export const useOffers = (f: OfferFilters) =>
 export const useOffer = (id: string) => useQuery({ queryKey: ["offer", id], queryFn: () => api<PublicOffer>(`/api/v1/offers/${id}`), refetchInterval: 20_000 });
 
 export const useSafeHours = () =>
-  useQuery({ queryKey: ["public-config"], queryFn: () => api<{ safeHours: { COOKED: number; RAW: number }; safeHoursMax: { COOKED: number; RAW: number } }>("/api/v1/config"), staleTime: 5 * 60_000 });
+  useQuery({ queryKey: ["public-config"], queryFn: () => api<{ safeHours: { COOKED: number; RAW: number }; safeHoursMax: { COOKED: number; RAW: number }; photos: boolean }>("/api/v1/config"), staleTime: 5 * 60_000 });
 
 // ---- me
 export function useMe() {
@@ -70,6 +70,7 @@ function useAct<TIn, TOut>(fn: (v: TIn) => Promise<TOut>, invalidate: string[][]
 const all = [["my-offers"], ["my-needs"], ["my-claims"], ["feed"], ["needs-near"], ["offers"], ["claim"], ["me"], ["notifications"], ["impact"]];
 
 export const useCreateOffer = () => useAct((b: CreateOffer) => api<PublicOffer>("/api/v1/offers", { method: "POST", body: b }), all);
+export const useUpdateOffer = () => useAct((v: { id: string; patch: Record<string, unknown> }) => api<PublicOffer>(`/api/v1/offers/${v.id}`, { method: "PATCH", body: v.patch }), all);
 export const useCancelOffer = () => useAct((id: string) => api(`/api/v1/offers/${id}/cancel`, { method: "POST" }), all);
 export const useCreateNeed = () => useAct((b: CreateNeed) => api<NeedDTO>("/api/v1/needs", { method: "POST", body: b }), all);
 export const useCancelNeed = () => useAct((id: string) => api(`/api/v1/needs/${id}/cancel`, { method: "POST" }), all);

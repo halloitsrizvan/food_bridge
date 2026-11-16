@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateOffer, useSafeHours } from "@/lib/api/hooks";
+import { useCreateOffer, useSafeHours, useUpdateOffer, type MyOffer } from "@/lib/api/hooks";
 import { formatLeft, toLocalInput } from "@/lib/format";
 import { CreateOfferSchema, type Category, type Diet, type Mode } from "@/lib/schemas/food";
 import { useNow } from "@/lib/use-now";
@@ -37,33 +37,36 @@ function Radios<T extends string>({ label, value, onChange, options }: { label: 
   );
 }
 
-export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
+export function PostFoodForm({ photosEnabled, initial }: { photosEnabled: boolean; initial?: MyOffer }) {
   const router = useRouter();
   const create = useCreateOffer();
+  const update = useUpdateOffer();
+  const editing = !!initial;
   const now = useNow();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<Category>("COOKED");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [category, setCategory] = useState<Category>(initial?.category ?? "COOKED");
   const cfgData = useSafeHours().data;
   const standard = cfgData?.safeHours ?? DEFAULT_CONFIG.safeHours; // default window
   const limits = cfgData?.safeHoursMax ?? DEFAULT_CONFIG.safeHoursMax; // longest a giver may choose
   // Giver-edited safe window (hours). null = use the standard window for the type.
-  const [safeOverride, setSafeOverride] = useState<number | null>(null);
+  const [safeOverride, setSafeOverride] = useState<number | null>(initial?.safeHoursSet ?? null);
   const stdHours = category === "PACKAGED" ? 0 : standard[category];
   const maxHours = category === "PACKAGED" ? 0 : Math.max(stdHours, limits[category]);
   const safeHours = category === "PACKAGED" ? 0 : Math.min(safeOverride ?? stdHours, maxHours);
   const pickCategory = (c: Category) => {
+    if (editing) return; // the food type is fixed once posted
     setCategory(c);
     setSafeOverride(null); // each type starts from its own standard window
   };
-  const [diet, setDiet] = useState<Diet>("VEG");
-  const [qty, setQty] = useState(20);
-  const [cooked, setCooked] = useState(() => toLocalInput(new Date(Date.now() - 30 * 60_000)));
-  const [expiry, setExpiry] = useState(() => toLocalInput(new Date(Date.now() + 6 * 3_600_000)));
-  const [mode, setMode] = useState<Mode>("EITHER");
+  const [diet, setDiet] = useState<Diet>(initial?.diet ?? "VEG");
+  const [qty, setQty] = useState(initial?.quantityMeals ?? 20);
+  const [cooked, setCooked] = useState(() => toLocalInput(initial?.cookedAt ? new Date(initial.cookedAt) : new Date(Date.now() - 30 * 60_000)));
+  const [expiry, setExpiry] = useState(() => toLocalInput(initial ? new Date(initial.expectedExpiryAt) : new Date(Date.now() + 6 * 3_600_000)));
+  const [mode, setMode] = useState<Mode>(initial?.mode ?? "EITHER");
   const [later, setLater] = useState(false);
   const [sched, setSched] = useState(() => toLocalInput(new Date(Date.now() + 3 * 3_600_000)));
-  const [photoUrl, setPhotoUrl] = useState<string>();
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(initial?.photoUrl ?? undefined);
   const [errs, setErrs] = useState<Record<string, string>>({});
 
   // Live "safe until" preview using the same pure function the server uses (default window sizes).
@@ -91,7 +94,7 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
       expectedExpiryAt: new Date(expiry),
       mode,
       photoUrl,
-      scheduledFor: later ? new Date(sched) : undefined,
+      scheduledFor: !editing && later ? new Date(sched) : undefined,
     });
     if (!r.success) {
       const m: Record<string, string> = {};
@@ -100,6 +103,32 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
       return toast.error("Please fix the highlighted fields");
     }
     setErrs({});
+    if (initial) {
+      const d = r.data;
+      update.mutate(
+        {
+          id: initial.id,
+          patch: {
+            title: d.title,
+            description: d.description,
+            diet: d.diet,
+            quantityMeals: d.quantityMeals,
+            mode: d.mode,
+            photoUrl: d.photoUrl ?? null,
+            expectedExpiryAt: d.expectedExpiryAt,
+            ...(d.category !== "PACKAGED" && { cookedAt: d.cookedAt, safeHours: safeHours || undefined }),
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success("Changes saved");
+            router.push(`/dashboard/offers/${initial.id}`);
+          },
+          onError: (err) => toast.error(err.message),
+        },
+      );
+      return;
+    }
     create.mutate(r.data, {
       onSuccess: (o) => {
         toast.success(later ? "Scheduled. Nearby receivers are notified when it opens." : "Posted. Nearby receivers are being alerted.");
@@ -119,11 +148,13 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
           <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Veg biryani trays" maxLength={80} className="h-11 rounded-xl" aria-invalid={!!errs.title} />
           {err("title")}
         </div>
-        <Radios label="Type of food" value={category} onChange={pickCategory} options={[
+        <div className={editing ? "pointer-events-none opacity-60" : undefined} aria-disabled={editing}>
+        <Radios label={editing ? "Type of food (fixed after posting)" : "Type of food"} value={category} onChange={pickCategory} options={[
           { v: "COOKED", title: "Cooked", sub: `Safe ${standard.COOKED}h (up to ${Math.max(standard.COOKED, limits.COOKED)}h)`, icon: Salad },
           { v: "PACKAGED", title: "Packaged", sub: "Printed expiry", icon: Package },
           { v: "RAW", title: "Raw", sub: `Safe ${standard.RAW}h (up to ${Math.max(standard.RAW, limits.RAW)}h)`, icon: Carrot },
         ]} />
+        </div>
         {category !== "PACKAGED" && (
           <div className="space-y-1.5 rounded-2xl border bg-accent/40 p-4">
             <Label htmlFor="safeh">Safe window (hours after {category === "COOKED" ? "cooking" : "preparation"})</Label>
@@ -198,7 +229,7 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
           </div>
         )}
 
-        <div className="rounded-2xl border p-4">
+        {!editing && <div className="rounded-2xl border p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="flex items-center gap-1.5 text-sm font-medium"><CalendarClock className="size-4 text-info" aria-hidden /> Announce later (event pre-announce)</p>
@@ -213,7 +244,7 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
               {err("scheduledFor")}
             </div>
           )}
-        </div>
+        </div>}
       </div>
 
       <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
@@ -233,8 +264,8 @@ export function PostFoodForm({ photosEnabled }: { photosEnabled: boolean }) {
             <p className="mt-2 text-sm text-muted-foreground">Fill in the times to see how long it stays safe.</p>
           )}
         </div>
-        <Button type="submit" disabled={create.isPending || (left != null && left <= 0)} className="h-12 w-full rounded-xl text-base">
-          {create.isPending ? "Posting..." : later ? "Schedule post" : "Post surplus food"}
+        <Button type="submit" disabled={create.isPending || update.isPending || (left != null && left <= 0)} className="h-12 w-full rounded-xl text-base">
+          {editing ? (update.isPending ? "Saving..." : "Save changes") : create.isPending ? "Posting..." : later ? "Schedule post" : "Post surplus food"}
         </Button>
       </aside>
     </form>

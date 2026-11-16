@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -105,6 +105,7 @@ export function OfferPage({ id }: { id: string }) {
           {mineRow && (
             <div className="flex flex-wrap gap-2">
               {mineRow.claimId && <Link href={`/dashboard/claims/${mineRow.claimId}`} className="inline-flex h-11 items-center rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground">Open handover</Link>}
+              {o.status === "OPEN" && <Link href={`/dashboard/offers/${id}/edit`} className="inline-flex h-11 items-center gap-2 rounded-full border bg-background px-5 text-sm font-medium hover:bg-muted"><Pencil className="size-4" aria-hidden /> Edit post</Link>}
               {o.status === "OPEN" && <Button variant="outline" className="h-11 rounded-xl text-clay" onClick={() => setConfirm(true)}>Cancel post</Button>}
             </div>
           )}
