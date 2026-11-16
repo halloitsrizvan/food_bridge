@@ -84,7 +84,7 @@ export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel = "C
           <ModeChip mode={offer.mode} className="ml-auto" />
         </p>
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="size-3.5 shrink-0" aria-hidden /> <span className="truncate">{offer.area || "Nearby"} · {offer.giverName} · {kindLabel(offer.giverKind)}</span>
+          <MapPin className="size-3.5 shrink-0" aria-hidden /> <span className="truncate">{offer.distanceKm != null && <b className="text-foreground">{offer.distanceKm} km · </b>}{offer.area || "Nearby"} · {offer.giverName} · {kindLabel(offer.giverKind)}</span>
         </p>
         {m && (
           <p className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-xs font-medium text-accent-foreground">

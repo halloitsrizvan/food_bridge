@@ -49,7 +49,7 @@ export function ExploreCategories() {
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (d: number) => ref.current?.scrollBy({ left: d * 280, behavior: "smooth" });
   return (
-    <section className="mx-auto max-w-7xl px-4 py-14">
+    <section className="mx-auto max-w-7xl py-14">
       <SectionHead
         title="Explore Categories"
         action={
@@ -59,7 +59,7 @@ export function ExploreCategories() {
           </div>
         }
       />
-      <div ref={ref} className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div ref={ref} className="flex snap-x gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {CATS.map((c) => (
           <button key={c.label} type="button" onClick={() => setFeedFilter(c.f)} className={cn("group flex min-h-[13rem] w-56 shrink-0 snap-start flex-col items-center justify-center gap-3 rounded-[20px] p-5 text-center transition-transform hover:-translate-y-1", c.bg)}>
             <span className={cn("grid size-24 place-items-center rounded-full bg-white/70 transition-transform group-hover:scale-105", c.fg)}>
@@ -79,7 +79,7 @@ export function ExploreCategories() {
 export function PromoBanners() {
   const { data: me } = useMe();
   return (
-    <section className="mx-auto grid max-w-7xl gap-4 px-4 py-6 lg:grid-cols-[1fr_1.7fr]">
+    <section className="mx-auto grid max-w-7xl gap-4 py-6 lg:grid-cols-[1fr_1.7fr]">
       <div className="grid gap-4">
         <div className="relative overflow-hidden rounded-[20px] p-6 text-white" style={{ background: "linear-gradient(135deg,#6c5ce7,#8e7cf3)" }}>
           <h3 className="font-display text-2xl font-semibold">Click. Share. Smile.</h3>
@@ -121,7 +121,7 @@ export function ExpiringDeals() {
   const { data } = useOffers({ sort: "soonest", maxMinutesLeft: 480, limit: 2 });
   if (!data?.items.length) return null;
   return (
-    <section id="deals" className="mx-auto max-w-7xl scroll-mt-32 px-4 py-14">
+    <section id="deals" className="mx-auto max-w-7xl scroll-mt-32 py-14">
       <SectionHead title="Limited-Time Deals" action={<span className="rounded-full bg-clay/10 px-4 py-2 text-sm font-semibold text-clay"><Timer className="mr-1 inline size-4" aria-hidden />Food is spoiling, claim now</span>} />
       <div className="grid gap-4 md:grid-cols-2">
         {data.items.map((o) => {
@@ -164,7 +164,7 @@ export function HowItWorks() {
     { icon: Handshake, title: "Hand over with a code", body: "Both sides agree, the giver shows a 6-digit code, the receiver enters it at pickup. Points follow." },
   ];
   return (
-    <section id="how" className="mx-auto max-w-7xl scroll-mt-32 px-4 py-14">
+    <section id="how" className="mx-auto max-w-7xl scroll-mt-32 py-14">
       <SectionHead title={t.landing.how} />
       <ol className="grid gap-4 md:grid-cols-3">
         {steps.map((s, i) => (
@@ -182,7 +182,7 @@ export function HowItWorks() {
 
 export function TrustStrip() {
   return (
-    <section id="trust" className="mx-auto max-w-7xl scroll-mt-32 px-4 py-6">
+    <section id="trust" className="mx-auto max-w-7xl scroll-mt-32 py-6">
       <div className="grid gap-10 rounded-[28px] p-8 text-white sm:p-12 lg:grid-cols-2 lg:items-center" style={{ background: "linear-gradient(135deg,#032724,#07524c)" }}>
         <div>
           <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold"><ShieldCheck className="size-4 text-saffron" aria-hidden /> Government verified platform</p>
@@ -218,7 +218,7 @@ const FAQ = [
 
 export function Faq() {
   return (
-    <section id="faq" className="mx-auto max-w-3xl scroll-mt-32 px-4 py-14">
+    <section id="faq" className="mx-auto max-w-3xl scroll-mt-32 py-14">
       <h2 className="mb-6 font-display text-2xl font-semibold sm:text-4xl">{t.landing.faq}</h2>
       <div className="divide-y rounded-[20px] border bg-background">
         {FAQ.map(([q, a]) => (
@@ -237,7 +237,7 @@ export function Faq() {
 export function CtaBand() {
   const { data: me } = useMe();
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10">
+    <section className="mx-auto max-w-7xl py-10">
       <div className="relative overflow-hidden rounded-[28px] p-8 sm:p-14" style={{ background: "linear-gradient(135deg,#d8eefa,#eaf7fb)" }}>
         <h2 className="max-w-lg text-balance font-display text-3xl font-semibold leading-tight text-[#032724] sm:text-5xl">Ready to Share Surplus Food?</h2>
         <p className="mb-6 mt-3 max-w-md text-sm text-[#44575a]">Join restaurants, caterers, homes, charities and institutions already keeping good food out of the bin.</p>
@@ -254,7 +254,7 @@ export function CtaBand() {
 export function Footer() {
   return (
     <footer className="mt-10 bg-[#032724] text-white">
-      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-4 pb-6 pt-12 sm:flex-row sm:items-center">
+      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 pb-6 pt-12 sm:flex-row sm:items-center">
         <div>
           <Logo light />
           <p className="mt-3 max-w-xs text-sm text-white/70">A government food-surplus network. Good food finds a plate.</p>

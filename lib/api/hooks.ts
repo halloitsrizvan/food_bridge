@@ -24,7 +24,7 @@ const qs = (o: Record<string, string | number | undefined>) => {
 // ---- public
 export const useImpact = () => useQuery({ queryKey: ["impact"], queryFn: () => api<Impact>("/api/v1/impact"), refetchInterval: 20_000 });
 export const useLeaderboard = () => useQuery({ queryKey: ["leaderboard"], queryFn: () => api<LeaderRow[]>("/api/v1/leaderboard") });
-export type OfferFilters = { area?: string; q?: string; diet?: string; category?: string; maxMinutesLeft?: number; sort?: string; page?: number; limit?: number };
+export type OfferFilters = { area?: string; q?: string; diet?: string; category?: string; maxMinutesLeft?: number; sort?: string; page?: number; limit?: number; lat?: number; lng?: number };
 export const useOffers = (f: OfferFilters) =>
   useQuery({ queryKey: ["offers", f], queryFn: () => api<Page<PublicOffer>>(`/api/v1/offers${qs(f)}`), refetchInterval: 20_000, placeholderData: (p) => p });
 export const useOffer = (id: string) => useQuery({ queryKey: ["offer", id], queryFn: () => api<PublicOffer>(`/api/v1/offers/${id}`), refetchInterval: 20_000 });

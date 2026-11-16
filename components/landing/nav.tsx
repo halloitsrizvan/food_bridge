@@ -7,6 +7,7 @@ import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { useMe } from "@/lib/api/hooks";
+import { requestLocation, useLocation } from "@/lib/use-location";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
@@ -26,16 +27,30 @@ export function LandingNav() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const { data: me } = useMe();
+  const loc = useLocation();
   const dash = me ? (me.role === "GOV" ? "/gov" : "/dashboard") : null;
   const cta = me ? { href: me.role === "GIVER" ? "/dashboard/post" : dash!, label: me.role === "GIVER" ? "Share food" : "Dashboard" } : { href: "/signup", label: "Share food" };
 
   return (
     <header className="sticky top-0 z-50 bg-background">
       <div className="bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-[13px]">
-        Surplus food is matched and handed over within <b className="text-saffron">20 minutes</b> across Kozhikode · <b>Free, government run</b>
+        Surplus food is matched and handed over within <b className="text-saffron">20 minutes</b>{" "}
+        {loc.place ? (
+          <>near <b>{loc.place}</b></>
+        ) : loc.status === "asking" ? (
+          "near you (locating...)"
+        ) : (
+          <>
+            in your area ·{" "}
+            <button type="button" onClick={() => requestLocation(true)} className="font-semibold underline underline-offset-2">
+              use my location
+            </button>
+          </>
+        )}{" "}
+        · <b>Free, government run</b>
       </div>
       <div className="border-b">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-4 px-4">
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-4">
           <Link href="/" aria-label="FoodBridge home">
             <Logo />
           </Link>
@@ -76,7 +91,7 @@ export function LandingNav() {
         </div>
       </div>
       <div className="hidden border-b md:block">
-        <nav className="mx-auto flex h-12 max-w-7xl items-center gap-6 px-4 text-sm font-medium" aria-label="Sections">
+        <nav className="mx-auto flex h-12 max-w-7xl items-center gap-6 text-sm font-medium" aria-label="Sections">
           <button type="button" onClick={() => setFeedFilter({})} className="flex items-center gap-2 text-foreground">
             <LayoutGrid className="size-4" aria-hidden /> Explore all categories
           </button>

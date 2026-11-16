@@ -1,7 +1,7 @@
 import type { Profile } from "@prisma/client";
 import type { CreateOffer, OfferWithMatch, PublicOffer } from "@/lib/schemas/food";
 import { AppError } from "../lib/errors";
-import { approx, boundingBox } from "../logic/geo";
+import { approx, boundingBox, haversineKm } from "../logic/geo";
 import { radiusFor } from "../logic/escalation";
 import { rankCandidates, type Candidate } from "../logic/match";
 import { effectiveExpiry, elapsedFraction, isExpired, safeUntil } from "../logic/time";
@@ -110,10 +110,33 @@ export const offerService = {
     );
   },
 
-  async listPublic(f: Parameters<typeof offerRepository.listPublic>[0], page: number, limit: number) {
+  async listPublic(
+    f: Omit<Parameters<typeof offerRepository.listPublic>[0], "sort"> & { sort: "soonest" | "newest" | "nearest" },
+    page: number,
+    limit: number,
+    here?: { lat: number; lng: number },
+  ) {
     await maintenanceService.sweepIfStale();
-    const { items, total } = await offerRepository.listPublic(f, page, limit);
-    return { items: items.map(toPublicOffer), total, page, limit, pages: Math.max(1, Math.ceil(total / limit)) };
+    if (!here) {
+      const { items, total } = await offerRepository.listPublic({ ...f, sort: f.sort === "newest" ? "newest" : "soonest" }, page, limit);
+      return { items: items.map((o) => toPublicOffer(o)), total, page, limit, pages: Math.max(1, Math.ceil(total / limit)) };
+    }
+    // With a location: distance is computed from the giver's exact point but only rounded km are returned.
+    const { items } = await offerRepository.listPublic({ ...f, sort: f.sort === "newest" ? "newest" : "soonest" }, 1, 200);
+    const withDist = items.map((o) => ({
+      o,
+      d: o.giver.lat != null && o.giver.lng != null ? haversineKm(here, { lat: o.giver.lat, lng: o.giver.lng }) : Number.POSITIVE_INFINITY,
+    }));
+    if (f.sort === "nearest") withDist.sort((a, b) => a.d - b.d);
+    const total = withDist.length;
+    const slice = withDist.slice((page - 1) * limit, page * limit);
+    return {
+      items: slice.map(({ o, d }) => ({ ...toPublicOffer(o), ...(Number.isFinite(d) && { distanceKm: Math.round(d * 10) / 10 }) })),
+      total,
+      page,
+      limit,
+      pages: Math.max(1, Math.ceil(total / limit)),
+    };
   },
 
   async getPublic(id: string): Promise<PublicOffer> {

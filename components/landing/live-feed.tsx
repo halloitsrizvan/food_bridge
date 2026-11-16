@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { useMe, useOffers, type OfferFilters } from "@/lib/api/hooks";
 import { CATEGORY_LABEL } from "@/lib/format";
 import { t } from "@/lib/i18n/en";
+import { requestLocation, useLocation } from "@/lib/use-location";
 import type { PublicOffer } from "@/lib/schemas/food";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +44,11 @@ export function LiveFeed() {
   const [diet, setDiet] = useState<string>();
   const [category, setCategory] = useState<string>();
   const [maxMin, setMaxMin] = useState<number>();
-  const [sort, setSort] = useState<"soonest" | "newest">("soonest");
+  const loc = useLocation();
+  const [sortChoice, setSortChoice] = useState<"nearest" | "soonest" | "newest" | null>(null);
+  const located = loc.lat != null && loc.lng != null;
+  const sort = sortChoice ?? (located ? "nearest" : "soonest");
+  const setSort = setSortChoice;
   const [selected, setSelected] = useState<PublicOffer | null>(null);
   const [loginFor, setLoginFor] = useState<PublicOffer | null>(null);
 
@@ -60,11 +65,11 @@ export function LiveFeed() {
   const dq = useDebounced(q);
   const darea = useDebounced(area);
   // page resets whenever any filter changes (derived, no effect)
-  const filterKey = JSON.stringify([dq, darea, diet, category, maxMin, sort]);
+  const filterKey = JSON.stringify([dq, darea, diet, category, maxMin, sort, loc.lat, loc.lng]);
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;
   const setPage = (fn: (p: number) => number) => setPageState({ key: filterKey, page: fn(page) });
-  const filters: OfferFilters = { q: dq || undefined, area: darea || undefined, diet, category, maxMinutesLeft: maxMin, sort, page, limit: 9 };
+  const filters: OfferFilters = { q: dq || undefined, area: darea || undefined, diet, category, maxMinutesLeft: maxMin, sort: sort === "nearest" && !located ? "soonest" : sort, page, limit: 9, lat: loc.lat ?? undefined, lng: loc.lng ?? undefined };
   const { data, isPending, isError, refetch, isPlaceholderData } = useOffers(filters);
 
   function contact(o: PublicOffer) {
@@ -75,13 +80,22 @@ export function LiveFeed() {
 
   return (
     <section id="live" className="scroll-mt-32 bg-secondary py-14">
-      <div className="mx-auto max-w-7xl px-4">
+      <div className="mx-auto max-w-7xl">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-semibold sm:text-4xl">Best Food Near You</h2>
+          <h2 className="font-display text-2xl font-semibold sm:text-4xl">Best Food Near {loc.place ?? "You"}</h2>
           <p className="text-muted-foreground">{t.landing.liveSub}</p>
         </div>
         <div className="flex gap-2" role="group" aria-label="Sort">
+          {located ? (
+            <Chip active={sort === "nearest"} onClick={() => setSort("nearest")}>
+              Nearest
+            </Chip>
+          ) : (
+            <Chip active={false} onClick={() => requestLocation(true)}>
+              {loc.status === "asking" ? "Locating..." : "Use my location"}
+            </Chip>
+          )}
           <Chip active={sort === "soonest"} onClick={() => setSort("soonest")}>
             Soonest expiring
           </Chip>

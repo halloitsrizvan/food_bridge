@@ -73,7 +73,10 @@ export const OfferQuerySchema = z.object({
   diet: z.enum(["VEG", "NON_VEG"]).optional(),
   category: CategorySchema.optional(),
   maxMinutesLeft: z.coerce.number().int().min(1).max(10080).optional(),
-  sort: z.enum(["soonest", "newest"]).default("soonest"),
+  sort: z.enum(["soonest", "newest", "nearest"]).default("soonest"),
+  /** Visitor location (optional): enables distance and the "nearest" sort. */
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
   page: z.coerce.number().int().min(1).max(500).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(12),
 });
@@ -119,6 +122,8 @@ export const PublicOfferSchema = z
     giverKind: z.string().nullable(),
     giverTier: TierSchema,
     giverTrust: z.number(),
+    /** km from the visitor, only when lat/lng were sent */
+    distanceKm: z.number().optional(),
   })
   .meta({ id: "PublicOffer" });
 export type PublicOffer = z.infer<typeof PublicOfferSchema>;
