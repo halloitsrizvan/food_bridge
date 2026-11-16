@@ -47,3 +47,6 @@ export default function VerifyPage({ params }: { params: Promise<{ claimId: stri
     </main>
   );
 }
+
+// These routes read the session (request-time data) and block on the server by design.
+export const instant = false;

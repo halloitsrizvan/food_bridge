@@ -21,3 +21,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </Suspense>
   );
 }
+
+// These routes read the session (request-time data) and block on the server by design.
+export const instant = false;

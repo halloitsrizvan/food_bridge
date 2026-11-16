@@ -18,3 +18,6 @@ export default function GovLayout({ children }: { children: React.ReactNode }) {
     </Suspense>
   );
 }
+
+// These routes read the session (request-time data) and block on the server by design.
+export const instant = false;
