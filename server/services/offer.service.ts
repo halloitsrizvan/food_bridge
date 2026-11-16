@@ -59,7 +59,7 @@ export const offerService = {
     if (giver.lat == null || giver.lng == null) throw AppError.onboardingRequired();
     const cfg = await configService.get();
     const now = new Date();
-    const safe = safeUntil(input.category, input.cookedAt ?? null, input.expectedExpiryAt, cfg, now);
+    const safe = safeUntil(input.category, input.cookedAt ?? null, input.expectedExpiryAt, cfg, now, input.safeHours);
     const eff = new Date(Math.min(safe.getTime(), input.expectedExpiryAt.getTime()));
     if (eff.getTime() <= now.getTime()) throw AppError.badRequest("This food is already past its safe time", { safeUntil: safe.toISOString() });
     const scheduled = input.scheduledFor && input.scheduledFor.getTime() > now.getTime() ? input.scheduledFor : null;

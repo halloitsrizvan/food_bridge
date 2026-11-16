@@ -3,17 +3,23 @@ import type { Config } from "./config";
 export type Category = "COOKED" | "PACKAGED" | "RAW";
 const HOUR = 3_600_000;
 
-/** COOKED: cookedAt + 4h, RAW: + 24h, PACKAGED: the printed expiry. */
+/**
+ * COOKED: cookedAt + 4h, RAW: + 24h, PACKAGED: the printed expiry.
+ * A giver may shorten the window (`hoursOverride`); it can never exceed the configured maximum.
+ */
 export function safeUntil(
   category: Category,
   cookedAt: Date | null,
   expectedExpiryAt: Date,
   cfg: Pick<Config, "safeHours">,
   now = new Date(),
+  hoursOverride?: number,
 ): Date {
   if (category === "PACKAGED") return expectedExpiryAt;
   const base = cookedAt ?? now;
-  return new Date(base.getTime() + cfg.safeHours[category] * HOUR);
+  const max = cfg.safeHours[category];
+  const hours = hoursOverride && hoursOverride > 0 ? Math.min(hoursOverride, max) : max;
+  return new Date(base.getTime() + hours * HOUR);
 }
 
 export const effectiveExpiry = (o: { expectedExpiryAt: Date; safeUntil: Date }): Date =>

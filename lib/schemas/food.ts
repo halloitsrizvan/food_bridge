@@ -27,6 +27,8 @@ export const CreateOfferSchema = z
     mode: ModeSchema,
     photoUrl: z.url().max(500).optional(),
     scheduledFor: z.coerce.date().optional(),
+    /** Optional shorter safe window in hours (cooked / raw). Clamped to the government maximum. */
+    safeHours: z.number().min(0.5, "At least 30 minutes").max(72).optional(),
   })
   .refine((v) => v.category === "PACKAGED" || v.cookedAt, { path: ["cookedAt"], message: "When was it cooked / prepared?" })
   .refine((v) => !v.cookedAt || v.cookedAt.getTime() <= Date.now() + 5 * 60_000 || !!v.scheduledFor, {

@@ -18,6 +18,12 @@ describe("safeUntil / expiry", () => {
     expect(safeUntil("RAW", at(-1), at(100), cfg, now)).toEqual(at(23));
     expect(safeUntil("PACKAGED", null, at(48), cfg, now)).toEqual(at(48));
   });
+  it("a giver can shorten the safe window but never exceed the configured max", () => {
+    expect(safeUntil("COOKED", at(-1), at(10), cfg, now, 2)).toEqual(at(1));
+    expect(safeUntil("COOKED", at(-1), at(10), cfg, now, 9)).toEqual(at(3));
+    expect(safeUntil("RAW", at(0), at(100), cfg, now, 6)).toEqual(at(6));
+    expect(safeUntil("PACKAGED", null, at(48), cfg, now, 1)).toEqual(at(48));
+  });
   it("effective expiry is the earlier of the two", () => {
     expect(effectiveExpiry({ expectedExpiryAt: at(10), safeUntil: at(3) })).toEqual(at(3));
     expect(effectiveExpiry({ expectedExpiryAt: at(2), safeUntil: at(3) })).toEqual(at(2));

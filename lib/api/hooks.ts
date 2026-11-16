@@ -29,6 +29,9 @@ export const useOffers = (f: OfferFilters) =>
   useQuery({ queryKey: ["offers", f], queryFn: () => api<Page<PublicOffer>>(`/api/v1/offers${qs(f)}`), refetchInterval: 20_000, placeholderData: (p) => p });
 export const useOffer = (id: string) => useQuery({ queryKey: ["offer", id], queryFn: () => api<PublicOffer>(`/api/v1/offers/${id}`), refetchInterval: 20_000 });
 
+export const useSafeHours = () =>
+  useQuery({ queryKey: ["public-config"], queryFn: () => api<{ safeHours: { COOKED: number; RAW: number } }>("/api/v1/config"), staleTime: 5 * 60_000 });
+
 // ---- me
 export function useMe() {
   return useQuery({
