@@ -54,6 +54,9 @@ describe("geo", () => {
     expect(parseLatLng("https://www.google.com/maps/@11.2588,75.7804,15z")).toEqual({ lat: 11.2588, lng: 75.7804 });
     expect(parseLatLng("https://maps.google.com/?q=11.25,75.78")).toEqual({ lat: 11.25, lng: 75.78 });
     expect(parseLatLng("11.25, 75.78")).toEqual({ lat: 11.25, lng: 75.78 });
+    // short link target (/dir/ URL): the place is !1d<lng>!2d<lat>, not the viewport or the origin
+    expect(parseLatLng("https://www.google.com/maps/dir/11.1006806,76.1899656/KAUSAR+RESTAURANT,+Manjeri/@11.1125244,76.1528347,14160m/data=!3m2!1e3!4b1!4m10!4m9!1m1!4e1!1m5!1m1!1s0x3ba637a6548d7b89:0x54cb19b80f54a4cc!2m2!1d76.1156181!2d11.1126735!3e9")).toEqual({ lat: 11.1126735, lng: 76.1156181 });
+    expect(parseLatLng("https://www.google.com/maps/place/X/@11.1,76.1,17z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d11.2588!4d75.7804")).toEqual({ lat: 11.2588, lng: 75.7804 });
     expect(parseLatLng("https://example.com")).toBeNull();
     expect(parseLatLng("95.0,10.0")).toBeNull();
   });

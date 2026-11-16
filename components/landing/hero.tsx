@@ -42,7 +42,7 @@ function FloatingCard() {
 export function Hero() {
   const { data: me } = useMe();
   return (
-    <section className="mx-auto max-w-7xl pt-6">
+    <section className="mx-auto max-w-[1680px] px-4 sm:px-8 pt-6">
       <div className="relative isolate overflow-hidden rounded-[28px] text-white" style={{ background: "linear-gradient(135deg,#032724 0%,#066a62 45%,#27b3a3 100%)" }}>
         <div className="bg-dots absolute inset-0 -z-10 opacity-40" aria-hidden />
         <span className="pointer-events-none absolute -top-6 left-1/2 -z-10 -translate-x-1/2 select-none font-display text-[clamp(5rem,22vw,17rem)] font-extrabold leading-none tracking-tighter text-white/12" aria-hidden>

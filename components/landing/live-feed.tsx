@@ -80,7 +80,7 @@ export function LiveFeed() {
 
   return (
     <section id="live" className="scroll-mt-32 bg-secondary py-14">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-[1680px] px-4 sm:px-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-2xl font-semibold sm:text-4xl">Best Food Near {loc.place ?? "You"}</h2>

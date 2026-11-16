@@ -24,22 +24,32 @@ export function boundingBox(c: LatLng, radiusKm: number) {
 /** Privacy: public/unmatched responses only get coordinates rounded to ~1 km. */
 export const approx = (n: number | null | undefined) => (n == null ? null : Math.round(n * 100) / 100);
 
-/** Pull lat,lng out of a pasted Google Maps URL (or a bare "lat,lng"). */
+/**
+ * Pull the PLACE coordinates out of a Google Maps URL (or a bare "lat,lng").
+ * Priority matters: `!3d<lat>!4d<lng>` and `!1d<lng>!2d<lat>` are the place itself, while
+ * `@lat,lng` is only the map viewport (and /dir/ links start with the *origin*).
+ */
 export function parseLatLng(input: string): LatLng | null {
-  const s = decodeURIComponent(input.trim());
-  const patterns = [
-    /@(-?\d{1,3}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)/,
-    /!3d(-?\d{1,3}(?:\.\d+)?)!4d(-?\d{1,3}(?:\.\d+)?)/,
-    /[?&](?:q|ll|query|center)=(-?\d{1,3}(?:\.\d+)?)[, ]+(-?\d{1,3}(?:\.\d+)?)/,
-    /^(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)$/,
+  let s = input.trim();
+  try {
+    s = decodeURIComponent(s);
+  } catch {
+    /* malformed escape: parse as is */
+  }
+  const num = String.raw`(-?\d{1,3}(?:\.\d+)?)`;
+  const valid = (lat: number, lng: number) => (Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng } : null);
+  const tries: [RegExp, (m: RegExpMatchArray) => LatLng | null][] = [
+    [new RegExp("!3d" + num + "!4d" + num), (m) => valid(+m[1], +m[2])],
+    [new RegExp("!1d" + num + "!2d" + num), (m) => valid(+m[2], +m[1])], // lng first, then lat
+    [new RegExp("[?&](?:q|ll|query|center|destination)=" + num + "[, ]+" + num), (m) => valid(+m[1], +m[2])],
+    [new RegExp("/maps/place/[^@]*@" + num + "," + num), (m) => valid(+m[1], +m[2])],
+    [new RegExp("@" + num + "," + num), (m) => valid(+m[1], +m[2])],
+    [new RegExp("^" + num + String.raw`\s*,\s*` + num + "$"), (m) => valid(+m[1], +m[2])],
   ];
-  for (const p of patterns) {
-    const m = s.match(p);
-    if (m) {
-      const lat = Number(m[1]);
-      const lng = Number(m[2]);
-      if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) return { lat, lng };
-    }
+  for (const [re, pick] of tries) {
+    const m = s.match(re);
+    const r = m && pick(m);
+    if (r) return r;
   }
   return null;
 }

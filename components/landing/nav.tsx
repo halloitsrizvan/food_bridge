@@ -14,7 +14,6 @@ const LINKS = [
   { href: "#live", label: "Browse food" },
   { href: "#deals", label: "Expiring soon" },
   { href: "#how", label: "How it works" },
-  { href: "#trust", label: "Rewards" },
   { href: "#faq", label: "FAQ" },
 ];
 
@@ -36,7 +35,17 @@ export function LandingNav() {
       <div className="bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-[13px]">
         Surplus food is matched and handed over within <b className="text-saffron">20 minutes</b>{" "}
         {loc.place ? (
-          <>near <b>{loc.place}</b></>
+          <>
+            near <b>{loc.place}</b>
+            {loc.approximate && (
+              <>
+                {" "}(approx.) ·{" "}
+                <button type="button" onClick={() => requestLocation(true)} className="font-semibold underline underline-offset-2">
+                  use precise location
+                </button>
+              </>
+            )}
+          </>
         ) : loc.status === "asking" ? (
           "near you (locating...)"
         ) : (
@@ -50,7 +59,7 @@ export function LandingNav() {
         · <b>Free, government run</b>
       </div>
       <div className="border-b">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center gap-4">
+        <div className="mx-auto flex h-[72px] max-w-[1680px] px-4 sm:px-8 items-center gap-4">
           <Link href="/" aria-label="FoodBridge home">
             <Logo />
           </Link>
@@ -91,7 +100,7 @@ export function LandingNav() {
         </div>
       </div>
       <div className="hidden border-b md:block">
-        <nav className="mx-auto flex h-12 max-w-7xl items-center gap-6 text-sm font-medium" aria-label="Sections">
+        <nav className="mx-auto flex h-12 max-w-[1680px] px-4 sm:px-8 items-center gap-6 text-sm font-medium" aria-label="Sections">
           <button type="button" onClick={() => setFeedFilter({})} className="flex items-center gap-2 text-foreground">
             <LayoutGrid className="size-4" aria-hidden /> Explore all categories
           </button>

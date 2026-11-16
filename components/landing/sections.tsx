@@ -1,11 +1,9 @@
 "use client";
 
-import { ArrowUpRight, BadgeCheck, ChevronLeft, ChevronRight, Carrot, Drumstick, Handshake, HeartHandshake, Leaf, Package, Plus, Radar, Salad, ShieldCheck, Soup, Timer, Trophy } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Carrot, Drumstick, Handshake, HeartHandshake, Leaf, Package, Plus, Radar, Salad, Soup, Timer, } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { Logo } from "@/components/layout/logo";
-import { TierBadge } from "@/components/shared/badges";
-import { PostCard } from "@/components/shared/post-card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useMe, useOffers } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
@@ -49,7 +47,7 @@ export function ExploreCategories() {
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (d: number) => ref.current?.scrollBy({ left: d * 280, behavior: "smooth" });
   return (
-    <section className="mx-auto max-w-7xl py-14">
+    <section className="mx-auto max-w-[1680px] px-4 sm:px-8 py-14">
       <SectionHead
         title="Explore Categories"
         action={
@@ -79,7 +77,7 @@ export function ExploreCategories() {
 export function PromoBanners() {
   const { data: me } = useMe();
   return (
-    <section className="mx-auto grid max-w-7xl gap-4 py-6 lg:grid-cols-[1fr_1.7fr]">
+    <section className="mx-auto grid max-w-[1680px] px-4 sm:px-8 gap-4 py-6 lg:grid-cols-[1fr_1.7fr]">
       <div className="grid gap-4">
         <div className="relative overflow-hidden rounded-[20px] p-6 text-white" style={{ background: "linear-gradient(135deg,#6c5ce7,#8e7cf3)" }}>
           <h3 className="font-display text-2xl font-semibold">Click. Share. Smile.</h3>
@@ -121,7 +119,7 @@ export function ExpiringDeals() {
   const { data } = useOffers({ sort: "soonest", maxMinutesLeft: 480, limit: 2 });
   if (!data?.items.length) return null;
   return (
-    <section id="deals" className="mx-auto max-w-7xl scroll-mt-32 py-14">
+    <section id="deals" className="mx-auto max-w-[1680px] px-4 sm:px-8 scroll-mt-32 py-14">
       <SectionHead title="Limited-Time Deals" action={<span className="rounded-full bg-clay/10 px-4 py-2 text-sm font-semibold text-clay"><Timer className="mr-1 inline size-4" aria-hidden />Food is spoiling, claim now</span>} />
       <div className="grid gap-4 md:grid-cols-2">
         {data.items.map((o) => {
@@ -164,7 +162,7 @@ export function HowItWorks() {
     { icon: Handshake, title: "Hand over with a code", body: "Both sides agree, the giver shows a 6-digit code, the receiver enters it at pickup. Points follow." },
   ];
   return (
-    <section id="how" className="mx-auto max-w-7xl scroll-mt-32 py-14">
+    <section id="how" className="mx-auto max-w-[1680px] px-4 sm:px-8 scroll-mt-32 py-14">
       <SectionHead title={t.landing.how} />
       <ol className="grid gap-4 md:grid-cols-3">
         {steps.map((s, i) => (
@@ -176,34 +174,6 @@ export function HowItWorks() {
           </li>
         ))}
       </ol>
-    </section>
-  );
-}
-
-export function TrustStrip() {
-  return (
-    <section id="trust" className="mx-auto max-w-7xl scroll-mt-32 py-6">
-      <div className="grid gap-10 rounded-[28px] p-8 text-white sm:p-12 lg:grid-cols-2 lg:items-center" style={{ background: "linear-gradient(135deg,#032724,#07524c)" }}>
-        <div>
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold"><ShieldCheck className="size-4 text-saffron" aria-hidden /> Government verified platform</p>
-          <h2 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">{t.landing.trust}</h2>
-          <p className="mt-3 text-white/80">Every handover earns points. Reliable givers climb tiers, get a shareable certificate, and are shown first. Complaints are weighted by the complainant&apos;s own trust, and the government team reviews every suspension and appeal.</p>
-          <div className="mt-6 flex flex-wrap gap-2 [&_span]:bg-white/90"><TierBadge tier="BRONZE" /><TierBadge tier="SILVER" /><TierBadge tier="GOLD" /><TierBadge tier="PLATINUM" /></div>
-          <ul className="mt-6 space-y-2 text-sm text-white/85">
-            {[[BadgeCheck, "Exact address shown only after both sides accept"], [Timer, "Reservations auto-release in 15 minutes"], [Trophy, "Certificates with a QR anyone can verify"]].map(([Icon, text]) => {
-              const I = Icon as typeof BadgeCheck;
-              return <li key={text as string} className="flex items-center gap-2"><I className="size-4 shrink-0 text-saffron" aria-hidden /> {text as string}</li>;
-            })}
-          </ul>
-        </div>
-        <div className="rotate-1 rounded-3xl bg-white p-6 text-[#212529] shadow-lift" aria-label="Sample certificate">
-          <div className="flex items-center justify-between"><Logo /><span className="text-xs text-[#667085]">Government verified</span></div>
-          <p className="mt-6 text-[11px] font-bold tracking-[0.2em] text-primary">CERTIFICATE OF KINDNESS</p>
-          <p className="mt-1 font-display text-3xl font-semibold text-deep">Malabar Feast Caterers</p>
-          <p className="mt-1">saved <b className="text-primary">120 meals</b> from the bin.</p>
-          <div className="mt-4 flex gap-2"><span className="rounded-full bg-saffron px-3 py-1 text-sm font-bold">+175 points</span><span className="rounded-full bg-[#E0A21B] px-3 py-1 text-sm font-bold text-white">Gold</span></div>
-        </div>
-      </div>
     </section>
   );
 }
@@ -237,7 +207,7 @@ export function Faq() {
 export function CtaBand() {
   const { data: me } = useMe();
   return (
-    <section className="mx-auto max-w-7xl py-10">
+    <section className="mx-auto max-w-[1680px] px-4 sm:px-8 py-10">
       <div className="relative overflow-hidden rounded-[28px] p-8 sm:p-14" style={{ background: "linear-gradient(135deg,#d8eefa,#eaf7fb)" }}>
         <h2 className="max-w-lg text-balance font-display text-3xl font-semibold leading-tight text-[#032724] sm:text-5xl">Ready to Share Surplus Food?</h2>
         <p className="mb-6 mt-3 max-w-md text-sm text-[#44575a]">Join restaurants, caterers, homes, charities and institutions already keeping good food out of the bin.</p>
@@ -254,7 +224,7 @@ export function CtaBand() {
 export function Footer() {
   return (
     <footer className="mt-10 bg-[#032724] text-white">
-      <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 pb-6 pt-12 sm:flex-row sm:items-center">
+      <div className="mx-auto flex max-w-[1680px] px-4 sm:px-8 flex-col items-start justify-between gap-6 pb-6 pt-12 sm:flex-row sm:items-center">
         <div>
           <Logo light />
           <p className="mt-3 max-w-xs text-sm text-white/70">A government food-surplus network. Good food finds a plate.</p>
