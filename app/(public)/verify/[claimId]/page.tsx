@@ -1,5 +1,6 @@
 import { BadgeCheck, ShieldX } from "lucide-react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { Logo } from "@/components/layout/logo";
 import { TierBadge } from "@/components/shared/badges";
@@ -8,6 +9,7 @@ import { verifyClaim } from "@/server/services/verify.service";
 export const metadata = { title: "Verify a handover", robots: { index: false } };
 
 async function Result({ params }: { params: Promise<{ claimId: string }> }) {
+  await connection();
   const { claimId } = await params;
   const v = await verifyClaim(claimId);
   if (!v)

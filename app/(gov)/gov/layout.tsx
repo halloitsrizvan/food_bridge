@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { GovShell } from "@/components/gov/gov-shell";
 import { PageSkeleton } from "@/components/shared/states";
 import { getCurrentProfile } from "@/server/lib/auth";
 
 async function Shell({ children }: { children: React.ReactNode }) {
+  await connection(); // request-time only: session + DB
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login?next=/gov");
   if (profile.role !== "GOV") redirect("/dashboard");

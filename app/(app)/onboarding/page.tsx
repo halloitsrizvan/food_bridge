@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { OnboardingWizard } from "@/components/onboarding/wizard";
 import { PageSkeleton } from "@/components/shared/states";
@@ -7,6 +8,7 @@ import { getCurrentProfile } from "@/server/lib/auth";
 export const metadata = { title: "Set up your profile" };
 
 async function Gate() {
+  await connection(); // request-time only: session + DB
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
   if (profile.role === "GOV") redirect("/gov");

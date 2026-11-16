@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { PageSkeleton } from "@/components/shared/states";
@@ -7,6 +8,7 @@ import { profileService } from "@/server/services/profile.service";
 
 // Reads the session (request-time data), so it streams in behind Suspense.
 async function Shell({ children }: { children: React.ReactNode }) {
+  await connection(); // request-time only: session + DB
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login");
   if (profile.role === "GOV") redirect("/gov");
