@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarClock, Minus, Package, Plus, ShieldCheck, Truck, Footprints, ArrowLeftRight, Salad, Carrot, AlertTriangle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ImageUpload } from "@/components/shared/image-upload";
@@ -43,7 +43,8 @@ export function PostFoodForm({ photosEnabled, initial }: { photosEnabled: boolea
   const update = useUpdateOffer();
   const editing = !!initial;
   const now = useNow();
-  const [title, setTitle] = useState(initial?.title ?? "");
+  const prefill = useSearchParams(); // from a receiver's request: ?title=&meals=&diet=
+  const [title, setTitle] = useState(initial?.title ?? prefill.get("title") ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [category, setCategory] = useState<Category>(initial?.category ?? "COOKED");
   const cfgData = useSafeHours().data;
@@ -59,8 +60,8 @@ export function PostFoodForm({ photosEnabled, initial }: { photosEnabled: boolea
     setCategory(c);
     setSafeOverride(null); // each type starts from its own standard window
   };
-  const [diet, setDiet] = useState<Diet>(initial?.diet ?? "VEG");
-  const [qty, setQty] = useState(initial?.quantityMeals ?? 20);
+  const [diet, setDiet] = useState<Diet>(initial?.diet ?? ((["VEG", "NON_VEG", "BOTH"] as const).find((d) => d === prefill.get("diet")) ?? "VEG"));
+  const [qty, setQty] = useState(initial?.quantityMeals ?? (Math.min(5000, Math.max(1, Number(prefill.get("meals")) || 0)) || 20));
   const [cooked, setCooked] = useState(() => toLocalInput(initial?.cookedAt ? new Date(initial.cookedAt) : new Date(Date.now() - 30 * 60_000)));
   const [expiry, setExpiry] = useState(() => toLocalInput(initial ? new Date(initial.expectedExpiryAt) : new Date(Date.now() + 6 * 3_600_000)));
   const [mode, setMode] = useState<Mode>(initial?.mode ?? "EITHER");

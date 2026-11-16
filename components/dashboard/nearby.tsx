@@ -10,6 +10,7 @@ import { DietBadge, ModeChip } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
 import { EmptyState, ErrorState, PageSkeleton } from "@/components/shared/states";
 import { Button } from "@/components/ui/button";
+import { postForNeedUrl } from "@/lib/post-for-need";
 import { useClaimOffer, useContactNeed, useFeed, useMe, useMyNeeds, useMyOffers, useNeedsNear, useOffers, usePublicNeeds } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
 import type { Diet, Mode } from "@/lib/schemas/food";
@@ -72,6 +73,8 @@ export function NearbyPage() {
     const needMatch = new Map((giverNeeds.data ?? []).map((n) => [n.id, n]));
     const myNeedIds = new Set((myNeeds.data ?? []).map((n) => n.id));
     const myOfferIds = new Set((myOffers.data ?? []).map((o) => o.id));
+    // the giver's soonest-expiring open post, used for any request (even outside the 10 km match range)
+    const bestOfferId = [...(myOffers.data ?? [])].filter((o) => o.status === "OPEN").sort((a, b) => a.expiresAt.localeCompare(b.expiresAt))[0]?.id;
 
     const offers: Item[] = (offersQ.data?.items ?? [])
       .filter((o) => o.lat != null && o.lng != null && !myOfferIds.has(o.id) && !o.scheduledFor)
@@ -113,7 +116,7 @@ export function NearbyPage() {
           distanceKm: n.distanceKm ?? 0,
           score: m?.match ? m.match.score : null,
           until: n.neededBy,
-          forOfferId: m?.forOfferId,
+          forOfferId: m?.forOfferId ?? bestOfferId,
         };
       });
 
@@ -152,7 +155,8 @@ export function NearbyPage() {
     claim.mutate({ offerId: i.id }, { onSuccess: (r) => { toast.success("Request sent. The giver has 15 minutes to accept."); router.push(`/dashboard/claims/${r.id}`); }, onError: (e) => toast.error(e.message) });
   }
   function offerFood(i: Item) {
-    if (!i.forOfferId) return void toast.error("Post food first, then you can offer it to a need.");
+    // no open post yet: take the giver to the post form, pre-filled from this request
+    if (!i.forOfferId) return router.push(postForNeedUrl(i));
     contact.mutate({ needId: i.id, offerId: i.forOfferId }, { onSuccess: () => toast.success("Offer sent. They have 15 minutes to accept."), onError: (e) => toast.error(e.message) });
   }
 
@@ -238,8 +242,8 @@ export function NearbyPage() {
                     </Button>
                   )}
                   {i.kind === "need" && isGiver && (
-                    <Button className="h-10 flex-1" disabled={!active || busyNeed === i.id || !i.forOfferId} onClick={(e) => { e.stopPropagation(); offerFood(i); }}>
-                      {busyNeed === i.id ? "Please wait..." : i.forOfferId ? "Offer my food" : "Post food first"}
+                    <Button className="h-10 flex-1" disabled={!active || busyNeed === i.id} onClick={(e) => { e.stopPropagation(); offerFood(i); }}>
+                      {busyNeed === i.id ? "Please wait..." : i.forOfferId ? "Offer my food" : "Post food for this"}
                     </Button>
                   )}
                   {i.kind === "offer" && (

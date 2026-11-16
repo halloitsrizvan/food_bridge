@@ -2,17 +2,20 @@
 
 import { Pencil, Plus, Trophy } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ClaimCard } from "@/components/claims/claim-card";
 import { Avatar, DietBadge, kindLabel } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
 import { WhyMatch } from "@/components/shared/match-breakdown";
+import { NeedCard } from "@/components/shared/need-card";
 import { EmptyState, ErrorState, PageSkeleton } from "@/components/shared/states";
 import { OFFER_STEPS, offerStep, StatusStepper } from "@/components/shared/status-stepper";
 import { TrustGauge } from "@/components/shared/trust-gauge";
 import { buttonVariants, Button } from "@/components/ui/button";
-import { useContactNeed, useMyClaims, useMyOffers, useNeedsNear } from "@/lib/api/hooks";
+import { postForNeedUrl } from "@/lib/post-for-need";
+import { useContactNeed, useMyClaims, useMyOffers, useNeedsNear, usePublicNeeds } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
 import type { ProfileDTO } from "@/lib/schemas/profile";
@@ -31,7 +34,10 @@ export function Stat({ label, value, sub }: { label: string; value: React.ReactN
 export function GiverHome({ me }: { me: ProfileDTO }) {
   const offers = useMyOffers();
   const claims = useMyClaims();
+  const router = useRouter();
   const needs = useNeedsNear();
+  // Nothing inside the 10 km search range (e.g. a giver far from other users): show the nearest requests anywhere instead.
+  const nearestNeeds = usePublicNeeds({ lat: me.lat ?? undefined, lng: me.lng ?? undefined, sort: "nearest", limit: 6 }, needs.isSuccess && needs.data.length === 0);
   const contact = useContactNeed();
   const [pendingNeed, setPendingNeed] = useState<string | null>(null);
   const now = useNow();
@@ -116,7 +122,32 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
         {needs.isPending ? (
           <PageSkeleton />
         ) : !needs.data?.length ? (
-          <EmptyState art="inbox" title="No open needs nearby" description="When institutions and families post needs within reach, they show here, best match first." />
+          nearestNeeds.data?.items.length ? (
+            <div className="space-y-3">
+              <p className="rounded-xl bg-info/10 px-4 py-2.5 text-sm text-info">No requests within 10 km of you. Showing the nearest ones; far requests may not be reachable before food spoils.</p>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {nearestNeeds.data.items.map((n, i) => {
+                  const offerId = live.find((o) => o.status === "OPEN")?.id;
+                  return (
+                    <NeedCard
+                      key={n.id}
+                      need={n}
+                      index={i}
+                      actionLabel={offerId ? "Offer my food" : "Post food for this"}
+                      disabled={(contact.isPending && pendingNeed === n.id) || me.status !== "ACTIVE"}
+                      onAction={() => {
+                        if (!offerId) return router.push(postForNeedUrl(n));
+                        setPendingNeed(n.id);
+                        contact.mutate({ needId: n.id, offerId: offerId! }, { onSuccess: () => toast.success("Offer sent. They have 15 minutes to accept."), onError: (e) => toast.error(e.message) });
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <EmptyState art="inbox" title="No open needs right now" description="When institutions and families post needs, they show here, nearest first." />
+          )
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {needs.data.slice(0, 6).map((n) => (
@@ -132,13 +163,14 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
                 {n.match ? <WhyMatch match={n.match} /> : <p className="text-xs text-muted-foreground">Post food to see how well it matches.</p>}
                 <Button
                   className="h-10 w-full rounded-xl"
-                  disabled={!n.forOfferId || (n.match?.score ?? 0) === 0 || (contact.isPending && pendingNeed === n.id) || me.status !== "ACTIVE"}
+                  disabled={(contact.isPending && pendingNeed === n.id) || me.status !== "ACTIVE"}
                   onClick={() => {
+                    if (!n.forOfferId) return router.push(postForNeedUrl(n));
                     setPendingNeed(n.id);
-                    contact.mutate({ needId: n.id, offerId: n.forOfferId! }, { onSuccess: () => toast.success("Offer sent. They have 15 minutes to accept."), onError: (e) => toast.error(e.message) });
+                    contact.mutate({ needId: n.id, offerId: n.forOfferId }, { onSuccess: () => toast.success("Offer sent. They have 15 minutes to accept."), onError: (e) => toast.error(e.message) });
                   }}
                 >
-                  {n.forOfferId ? "Offer my food" : "Post food first"}
+                  {n.forOfferId ? "Offer my food" : "Post food for this"}
                 </Button>
               </article>
             ))}
