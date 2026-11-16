@@ -25,8 +25,8 @@ const qs = (o: Record<string, string | number | undefined>) => {
 export const useImpact = () => useQuery({ queryKey: ["impact"], queryFn: () => api<Impact>("/api/v1/impact"), refetchInterval: 20_000 });
 export const useLeaderboard = () => useQuery({ queryKey: ["leaderboard"], queryFn: () => api<LeaderRow[]>("/api/v1/leaderboard") });
 export type OfferFilters = { area?: string; q?: string; diet?: string; category?: string; maxMinutesLeft?: number; sort?: string; page?: number; limit?: number; lat?: number; lng?: number };
-export const useOffers = (f: OfferFilters) =>
-  useQuery({ queryKey: ["offers", f], queryFn: () => api<Page<PublicOffer>>(`/api/v1/offers${qs(f)}`), refetchInterval: 20_000, placeholderData: (p) => p });
+export const useOffers = (f: OfferFilters, enabled = true) =>
+  useQuery({ queryKey: ["offers", f], enabled, queryFn: () => api<Page<PublicOffer>>(`/api/v1/offers${qs(f)}`), refetchInterval: 20_000, placeholderData: (p) => p });
 export type NeedFilters = { area?: string; q?: string; diet?: string; sort?: string; page?: number; limit?: number; lat?: number; lng?: number };
 export const usePublicNeeds = (f: NeedFilters, enabled = true) =>
   useQuery({ queryKey: ["needs-public", f], enabled, queryFn: () => api<Page<NeedDTO>>(`/api/v1/needs/public${qs(f)}`), refetchInterval: 20_000, placeholderData: (p) => p });

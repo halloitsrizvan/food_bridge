@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, HeartHandshake, Landmark, LayoutGrid, Menu, Search, X } from "lucide-react";
+import { ArrowUpRight, Landmark, LayoutGrid, Menu, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/logo";
@@ -138,9 +138,6 @@ export function LandingNav() {
               </a>
             ))}
           </span>
-          <a href="/api/docs" className="hidden items-center gap-2 text-foreground/80 hover:text-primary lg:flex">
-            <HeartHandshake className="size-4" aria-hidden /> API docs
-          </a>
         </nav>
         </div>
       </div>
@@ -180,9 +177,6 @@ export function LandingNav() {
                 {l.label}
               </a>
             ))}
-            <a href="/api/docs" className="flex min-h-12 items-center gap-3 rounded-xl px-2 text-[15px] font-medium hover:bg-muted">
-              <HeartHandshake className="size-4 text-primary" aria-hidden /> API docs
-            </a>
           </nav>
           {!me && (
             <div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3">
