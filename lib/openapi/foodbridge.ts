@@ -78,6 +78,7 @@ reg({ method: "post", path: "/api/v1/needs", tag: "Needs", summary: "Post a need
 reg({ method: "patch", path: "/api/v1/needs/{id}", tag: "Needs", summary: "Edit an open need", auth: "TAKER", params: id });
 reg({ method: "post", path: "/api/v1/needs/{id}/cancel", tag: "Needs", summary: "Cancel an open need", auth: "TAKER", params: id });
 reg({ method: "post", path: "/api/v1/needs/{id}/contact", tag: "Claims", summary: "Giver offers a post to a need", auth: "GIVER", params: id, body: ContactNeedSchema, status: 201 });
+reg({ method: "post", path: "/api/v1/needs/{id}/offer", tag: "Claims", summary: "Giver answers a request without posting food first (notifies the receiver)", auth: "GIVER", params: id, status: 201 });
 reg({ method: "get", path: "/api/v1/needs/{id}/suggestions", tag: "Match", summary: "Ranked offers for a need", auth: "TAKER", params: id });
 
 // Claims

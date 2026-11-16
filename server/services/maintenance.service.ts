@@ -27,7 +27,7 @@ async function run(): Promise<SweepResult> {
       const fresh = await tx.claim.findUnique({ where: { id: c.id } });
       if (!fresh || fresh.status !== "PENDING") return;
       await tx.claim.update({ where: { id: c.id }, data: { status: "EXPIRED" } });
-      await tx.offer.updateMany({ where: { id: c.offerId, status: "CONTACTED" }, data: { status: "OPEN" } });
+      await tx.offer.updateMany({ where: { id: c.offerId, status: "CONTACTED" }, data: { status: c.offer.direct ? "CANCELLED" : "OPEN" } });
       if (c.needId) await tx.need.updateMany({ where: { id: c.needId, status: "CONTACTED" }, data: { status: "OPEN" } });
     });
     r.holdsReleased++;

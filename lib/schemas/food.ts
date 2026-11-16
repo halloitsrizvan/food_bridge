@@ -172,6 +172,15 @@ export type NeedDTO = {
 };
 
 export const ContactNeedSchema = z.object({ offerId: z.uuid() });
+/** A giver answering a receiver's request without posting food first. */
+export const DirectOfferSchema = z.object({
+  meals: z.number().int().min(1, "At least 1 meal").max(5000),
+  /** How many hours the food stays safe from now (clamped to the government maximum). */
+  safeHours: z.number().min(0.5, "At least 30 minutes").max(72),
+  mode: ModeSchema.optional(),
+});
+export type DirectOffer = z.infer<typeof DirectOfferSchema>;
+
 export const ClaimOfferSchema = z.object({ needId: z.uuid().optional() });
 export const HandoverSchema = z.object({
   otp: z.string().regex(/^\d{6}$/, "Enter the 6-digit code"),

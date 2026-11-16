@@ -81,6 +81,7 @@ export const useCreateNeed = () => useAct((b: CreateNeed) => api<NeedDTO>("/api/
 export const useCancelNeed = () => useAct((id: string) => api(`/api/v1/needs/${id}/cancel`, { method: "POST" }), all);
 export const useClaimOffer = () => useAct((v: { offerId: string; needId?: string }) => api<{ id: string }>(`/api/v1/offers/${v.offerId}/claim`, { method: "POST", body: { needId: v.needId } }), all);
 export const useContactNeed = () => useAct((v: { needId: string; offerId: string }) => api<{ id: string }>(`/api/v1/needs/${v.needId}/contact`, { method: "POST", body: { offerId: v.offerId } }), all);
+export const useDirectOffer = () => useAct((v: { needId: string; meals: number; safeHours: number; mode?: string }) => api<{ id: string }>(`/api/v1/needs/${v.needId}/offer`, { method: "POST", body: { meals: v.meals, safeHours: v.safeHours, mode: v.mode } }), [...all, ["needs-public"]]);
 export const useAcceptClaim = () => useAct((id: string) => api<ClaimView>(`/api/v1/claims/${id}/accept`, { method: "POST" }), all);
 export const useDeclineClaim = () => useAct((id: string) => api<ClaimView>(`/api/v1/claims/${id}/decline`, { method: "POST" }), all);
 export const useHandover = () => useAct((v: { id: string; otp: string }) => api<{ claim: ClaimView; pointsAwarded: number }>(`/api/v1/claims/${v.id}/handover`, { method: "POST", body: { otp: v.otp } }), all);

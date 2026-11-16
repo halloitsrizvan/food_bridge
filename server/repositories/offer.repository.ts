@@ -10,6 +10,7 @@ const live = (now: Date): Prisma.OfferWhereInput => ({
   expectedExpiryAt: { gt: now },
   safeUntil: { gt: now },
   giver: { status: "ACTIVE" }, // suspended givers are hidden everywhere
+  direct: false, // private offers made to one specific receiver request
 });
 
 export const offerRepository = {

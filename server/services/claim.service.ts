@@ -3,12 +3,13 @@ import type { ClaimView, Party } from "@/lib/schemas/claim";
 import { AppError } from "../lib/errors";
 import { prisma } from "../lib/prisma";
 import { approx } from "../logic/geo";
-import { dietCompatible, feasibility, modeCompatible } from "../logic/match";
+import { dietCompatible, feasibility, matchScore, modeCompatible } from "../logic/match";
 import { deriveOtp, hashOtp, newSalt, verifyOtp } from "../logic/otp";
 import { giverPoints } from "../logic/points";
 import { effectiveExpiry } from "../logic/time";
 import { claimRepository, type ClaimFull } from "../repositories/claim.repository";
 import { offerRepository } from "../repositories/offer.repository";
+import { profileRepository } from "../repositories/profile.repository";
 import { needRepository } from "../repositories/need.repository";
 import { trustRepository } from "../repositories/trust.repository";
 import { configService } from "./config.service";
@@ -184,7 +185,96 @@ async function createClaim(args: { offerId: string; needId?: string; initiator: 
   }
 }
 
+/**
+ * A giver answers one receiver request without posting food first. We create a private "direct" offer
+ * (never listed publicly) plus a PENDING claim in one transaction and notify the receiver. From there it is
+ * the normal flow: accept (OTP/QR) -> handover -> reviews. Decline / timeout cancels the private offer.
+ */
+async function createDirectOffer(giver: Profile, needId: string, input: { meals: number; safeHours: number; mode?: "GIVER_DELIVERS" | "TAKER_PICKS_UP" | "EITHER" }) {
+  if (giver.role !== "GIVER") throw AppError.forbidden("Only givers can offer food");
+  const cfg = await configService.get();
+  const need = await needRepository.findById(needId);
+  if (!need) throw AppError.notFound("Request not found");
+  const taker = need.taker;
+  if (taker.status !== "ACTIVE" || giver.status !== "ACTIVE") throw AppError.conflict("This account is not currently active");
+  if (taker.lat == null || taker.lng == null || giver.lat == null || giver.lng == null) throw AppError.onboardingRequired();
+  const now = new Date();
+  if (need.status !== "OPEN" || need.neededBy <= now) throw AppError.conflict("This request is no longer open");
+
+  const mode = input.mode ?? need.mode;
+  if (!modeCompatible(mode, need.mode)) throw AppError.badRequest("Handover preference does not match this request");
+  const maxHours = Math.max(cfg.safeHours.COOKED, cfg.safeHoursMax.COOKED);
+  const hours = Math.min(input.safeHours, maxHours);
+  const safeUntil = new Date(now.getTime() + hours * 3_600_000);
+  const expiresAt = new Date(Math.min(safeUntil.getTime(), need.neededBy.getTime()));
+  const f = feasibility({ lat: giver.lat, lng: giver.lng }, { lat: taker.lat, lng: taker.lng }, expiresAt, cfg, now);
+  if (!f.feasible) throw AppError.badRequest("The food would spoil before it can reach this receiver. Try a longer safe window or a nearer request.");
+  const recv = (await profileRepository.mealsReceivedLast7Days([taker.id])).get(taker.id) ?? 0;
+  const { score, factors } = matchScore({
+    distanceKm: f.distanceKm,
+    radiusKm: Math.max(cfg.radiusSteps[2], f.distanceKm, 0.1),
+    slackMin: f.slackMin,
+    offerMeals: input.meals,
+    wantMeals: need.mealsNeeded,
+    dietOk: true,
+    trustScore: taker.trustScore,
+    mealsReceivedLast7Days: recv,
+  });
+  const snapshot = { score: Math.round(score * 1000) / 1000, factors, distanceKm: Math.round(f.distanceKm * 10) / 10, travelMin: Math.round(f.travelMin), slackMin: Math.round(f.slackMin), feasible: true };
+
+  try {
+    const claim = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM needs WHERE id = ${need.id}::uuid FOR UPDATE`;
+      const fresh = await needRepository.findById(need.id, tx);
+      if (!fresh || fresh.status !== "OPEN") throw AppError.conflict("Someone else already responded to this request");
+      const offer = await tx.offer.create({
+        data: {
+          giverId: giver.id,
+          title: `For ${taker.name}: ${need.title}`.slice(0, 80),
+          description: "",
+          category: "COOKED",
+          diet: need.diet,
+          quantityMeals: input.meals,
+          cookedAt: now,
+          expectedExpiryAt: need.neededBy,
+          safeUntil,
+          mode,
+          status: "CONTACTED", // never OPEN: it must not show up in any public list
+          direct: true,
+        },
+      });
+      const created = await claimRepository.create(tx, {
+        offerId: offer.id,
+        needId: need.id,
+        takerId: taker.id,
+        giverId: giver.id,
+        initiatedBy: "GIVER",
+        holdUntil: new Date(Date.now() + cfg.holdMinutes * 60_000),
+        scoreSnapshot: snapshot as unknown as Prisma.InputJsonValue,
+      });
+      await needRepository.update(need.id, { status: "CONTACTED" }, tx);
+      return created;
+    });
+    await notificationService.notify(
+      {
+        userId: taker.id,
+        type: "CLAIM_CREATED",
+        title: `${giver.name} can give you food`,
+        body: `${input.meals} meals for "${need.title}". Accept within ${cfg.holdMinutes} minutes to arrange the handover.`,
+        link: `/dashboard/claims/${claim.id}`,
+      },
+      { email: true },
+    );
+    return { id: claim.id };
+  } catch (e) {
+    if (isUniqueViolation(e)) throw AppError.conflict("Someone else already responded to this request");
+    throw e;
+  }
+}
+
 export const claimService = {
+  createDirectOffer,
+
   /** Taker contacts a giver's post. */
   createFromTaker: (taker: Profile, offerId: string, needId?: string) => {
     if (taker.role !== "TAKER") throw AppError.forbidden("Only receivers can claim food");
@@ -247,7 +337,8 @@ export const claimService = {
       if (responderId !== user.id) throw AppError.forbidden("Only the other side can decline");
       if (row.status !== "PENDING") throw AppError.conflict("This request is no longer pending");
       await claimRepository.update(tx, id, { status: "DECLINED" });
-      await offerRepository.update(row.offerId, { status: "OPEN" }, tx);
+      // a private direct offer is cancelled; a public post goes back on the market
+      await offerRepository.update(row.offerId, { status: row.offer.direct ? "CANCELLED" : "OPEN" }, tx);
       if (row.needId) await needRepository.update(row.needId, { status: "OPEN" }, tx);
       return row;
     });

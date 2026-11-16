@@ -17,6 +17,7 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
   let claimService: typeof import("@/server/services/claim.service").claimService;
   let offerService: typeof import("@/server/services/offer.service").offerService;
   let trustService: typeof import("@/server/services/trust.service").trustService;
+  let needService: typeof import("@/server/services/need.service").needService;
   let profiles: Awaited<ReturnType<typeof prisma.profile.findMany>>;
   const H = 3_600_000;
 
@@ -36,6 +37,7 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
     ({ claimService } = await import("@/server/services/claim.service"));
     ({ offerService } = await import("@/server/services/offer.service"));
     ({ trustService } = await import("@/server/services/trust.service"));
+    ({ needService } = await import("@/server/services/need.service"));
     const base = { onboarded: true, address: "Secret Street 1", area: "Testville", phone: "+919999900000" };
     await prisma.profile.createMany({
       data: [
@@ -55,6 +57,7 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
     await prisma.review.deleteMany({ where: { claim: { giverId: ids.giver } } });
     await prisma.claim.deleteMany({ where: { giverId: ids.giver } });
     await prisma.offer.deleteMany({ where: { giverId: ids.giver } });
+    await prisma.need.deleteMany({ where: { takerId: { in: [ids.taker, ids.taker2] } } });
     await prisma.profile.deleteMany({ where: { id: { in: all } } });
     await prisma.$disconnect();
   });
@@ -129,5 +132,57 @@ describe.skipIf(!hasDb)("claim flow (integration)", () => {
     const offer = await offerService.create(who(ids.giver), offerInput());
     const { id } = await claimService.createFromTaker(who(ids.taker), offer.id);
     await expect(claimService.get(who(ids.taker2), id)).rejects.toMatchObject({ status: 404 });
+  });
+
+  it("direct offer: giver answers a receiver request without posting food; accept -> normal handover; decline -> cancelled", async () => {
+    const giver = who(ids.giver);
+    const taker = who(ids.taker2);
+    const mkNeed = () =>
+      needService.create(taker, {
+        title: `itest need ${randomUUID().slice(0, 6)}`,
+        notes: "",
+        diet: "VEG",
+        mealsNeeded: 10,
+        neededFrom: new Date(Date.now() - 10 * 60_000),
+        neededBy: new Date(Date.now() + 5 * H),
+        mode: "EITHER",
+      });
+
+    // 1. offer to a request with NO posted food
+    const need = await mkNeed();
+    const { id: claimId } = await claimService.createDirectOffer(giver, need.id, { meals: 10, safeHours: 3 });
+    const pending = await claimService.get(giver, claimId);
+    expect(pending.status).toBe("PENDING");
+    expect(pending.initiatedBy).toBe("GIVER");
+    expect(pending.offer.quantityMeals).toBe(10);
+    // the private offer never shows up publicly, and the request is no longer open
+    const pub = await offerService.listPublic({ sort: "soonest" }, 1, 50);
+    expect(pub.items.some((o) => o.id === pending.offer.id)).toBe(false);
+    await expect(offerService.getPublic(pending.offer.id)).rejects.toMatchObject({ status: 404 });
+    expect((await prisma.need.findUnique({ where: { id: need.id } }))!.status).toBe("CONTACTED");
+    // a second giver response to the same request is refused
+    await expect(claimService.createDirectOffer(giver, need.id, { meals: 5, safeHours: 3 })).rejects.toMatchObject({ status: 409 });
+    // the giver cannot accept their own offer; the receiver can
+    await expect(claimService.accept(giver, claimId)).rejects.toMatchObject({ status: 403 });
+    const accepted = await claimService.accept(taker, claimId);
+    expect(accepted.status).toBe("ACCEPTED");
+    const giverView = await claimService.get(giver, claimId);
+    expect(giverView.otp).toMatch(/^\d{6}$/);
+    expect((await claimService.get(taker, claimId)).otp).toBeNull();
+    const done = await claimService.handover(taker, claimId, { otp: giverView.otp! });
+    expect(done.claim.status).toBe("COMPLETED");
+    expect((await prisma.need.findUnique({ where: { id: need.id } }))!.status).toBe("FULFILLED");
+    expect((await prisma.offer.findUnique({ where: { id: pending.offer.id } }))!.status).toBe("DELIVERED");
+    await trustService.review(taker, claimId, { rating: 5, comment: "" }); // mandatory review for the receiver
+
+    // 2. decline: the private offer is cancelled (not re-listed) and the request reopens
+    const need2 = await mkNeed();
+    const { id: claim2 } = await claimService.createDirectOffer(giver, need2.id, { meals: 4, safeHours: 3 });
+    const c2 = await claimService.get(giver, claim2);
+    await claimService.decline(taker, claim2);
+    expect((await prisma.offer.findUnique({ where: { id: c2.offer.id } }))!.status).toBe("CANCELLED");
+    expect((await prisma.need.findUnique({ where: { id: need2.id } }))!.status).toBe("OPEN");
+    const pub2 = await offerService.listPublic({ sort: "soonest" }, 1, 50);
+    expect(pub2.items.some((o) => o.id === c2.offer.id)).toBe(false);
   });
 });

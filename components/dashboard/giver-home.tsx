@@ -2,9 +2,7 @@
 
 import { Pencil, Plus, Trophy } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { ClaimCard } from "@/components/claims/claim-card";
 import { Avatar, DietBadge, kindLabel } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
@@ -14,8 +12,8 @@ import { EmptyState, ErrorState, PageSkeleton } from "@/components/shared/states
 import { OFFER_STEPS, offerStep, StatusStepper } from "@/components/shared/status-stepper";
 import { TrustGauge } from "@/components/shared/trust-gauge";
 import { buttonVariants, Button } from "@/components/ui/button";
-import { postForNeedUrl } from "@/lib/post-for-need";
-import { useContactNeed, useMyClaims, useMyOffers, useNeedsNear, usePublicNeeds } from "@/lib/api/hooks";
+import { OfferToNeedDialog, type NeedTarget } from "./offer-to-need";
+import { useMyClaims, useMyOffers, useNeedsNear, usePublicNeeds } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
 import type { ProfileDTO } from "@/lib/schemas/profile";
@@ -34,12 +32,10 @@ export function Stat({ label, value, sub }: { label: string; value: React.ReactN
 export function GiverHome({ me }: { me: ProfileDTO }) {
   const offers = useMyOffers();
   const claims = useMyClaims();
-  const router = useRouter();
   const needs = useNeedsNear();
   // Nothing inside the 10 km search range (e.g. a giver far from other users): show the nearest requests anywhere instead.
   const nearestNeeds = usePublicNeeds({ lat: me.lat ?? undefined, lng: me.lng ?? undefined, sort: "nearest", limit: 6 }, needs.isSuccess && needs.data.length === 0);
-  const contact = useContactNeed();
-  const [pendingNeed, setPendingNeed] = useState<string | null>(null);
+  const [offerTo, setOfferTo] = useState<NeedTarget | null>(null);
   const now = useNow();
 
   if (offers.isPending || claims.isPending) return <PageSkeleton />;
@@ -51,8 +47,10 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
   const live = (offers.data ?? []).filter((o) => ["OPEN", "CONTACTED", "SETTLED"].includes(o.status) && new Date(o.expiresAt) > new Date());
   const past = (offers.data ?? []).filter((o) => !live.includes(o));
 
+  const bestOpen = live.find((o) => o.status === "OPEN");
   return (
     <div className="space-y-8">
+      <OfferToNeedDialog need={offerTo} onClose={() => setOfferTo(null)} existing={bestOpen ? { id: bestOpen.id, title: bestOpen.title } : null} />
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-semibold sm:text-3xl">Hello, {me.name}</h1>
@@ -127,19 +125,14 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
               <p className="rounded-xl bg-info/10 px-4 py-2.5 text-sm text-info">No requests within 10 km of you. Showing the nearest ones; far requests may not be reachable before food spoils.</p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {nearestNeeds.data.items.map((n, i) => {
-                  const offerId = live.find((o) => o.status === "OPEN")?.id;
                   return (
                     <NeedCard
                       key={n.id}
                       need={n}
                       index={i}
-                      actionLabel={offerId ? "Offer my food" : "Post food for this"}
-                      disabled={(contact.isPending && pendingNeed === n.id) || me.status !== "ACTIVE"}
-                      onAction={() => {
-                        if (!offerId) return router.push(postForNeedUrl(n));
-                        setPendingNeed(n.id);
-                        contact.mutate({ needId: n.id, offerId: offerId! }, { onSuccess: () => toast.success("Offer sent. They have 15 minutes to accept."), onError: (e) => toast.error(e.message) });
-                      }}
+                      actionLabel="Offer food"
+                      disabled={me.status !== "ACTIVE"}
+                      onAction={() => setOfferTo(n)}
                     />
                   );
                 })}
@@ -161,16 +154,8 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
                   <span className="text-right text-xs text-muted-foreground">by<br /><b className="tabular text-foreground">{now ? formatLeft(new Date(n.neededBy).getTime() - now) : "…"}</b></span>
                 </div>
                 {n.match ? <WhyMatch match={n.match} /> : <p className="text-xs text-muted-foreground">Post food to see how well it matches.</p>}
-                <Button
-                  className="h-10 w-full rounded-xl"
-                  disabled={(contact.isPending && pendingNeed === n.id) || me.status !== "ACTIVE"}
-                  onClick={() => {
-                    if (!n.forOfferId) return router.push(postForNeedUrl(n));
-                    setPendingNeed(n.id);
-                    contact.mutate({ needId: n.id, offerId: n.forOfferId }, { onSuccess: () => toast.success("Offer sent. They have 15 minutes to accept."), onError: (e) => toast.error(e.message) });
-                  }}
-                >
-                  {n.forOfferId ? "Offer my food" : "Post food for this"}
+                <Button className="h-10 w-full rounded-xl" disabled={me.status !== "ACTIVE"} onClick={() => setOfferTo(n)}>
+                  Offer food
                 </Button>
               </article>
             ))}

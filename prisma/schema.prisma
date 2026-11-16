@@ -151,6 +151,8 @@ model Offer {
   scheduledFor     DateTime?    @map("scheduled_for")
   escalationLevel  Int          @default(0) @map("escalation_level")
   govAlerted       Boolean      @default(false) @map("gov_alerted")
+  /// true = created by a giver answering one specific receiver request; never listed publicly
+  direct           Boolean      @default(false)
   createdAt        DateTime     @default(now()) @map("created_at")
 
   giver  Profile @relation("GiverOffers", fields: [giverId], references: [id])

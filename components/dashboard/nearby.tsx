@@ -10,8 +10,8 @@ import { DietBadge, ModeChip } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
 import { EmptyState, ErrorState, PageSkeleton } from "@/components/shared/states";
 import { Button } from "@/components/ui/button";
-import { postForNeedUrl } from "@/lib/post-for-need";
-import { useClaimOffer, useContactNeed, useFeed, useMe, useMyNeeds, useMyOffers, useNeedsNear, useOffers, usePublicNeeds } from "@/lib/api/hooks";
+import { OfferToNeedDialog } from "./offer-to-need";
+import { useClaimOffer, useFeed, useMe, useMyNeeds, useMyOffers, useNeedsNear, useOffers, usePublicNeeds } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
 import type { Diet, Mode } from "@/lib/schemas/food";
 import { useNow } from "@/lib/use-now";
@@ -65,7 +65,7 @@ export function NearbyPage() {
   const myNeeds = useMyNeeds(!!me && !isGiver);
   const myOffers = useMyOffers(!!me && isGiver);
   const claim = useClaimOffer();
-  const contact = useContactNeed();
+  const [offerTo, setOfferTo] = useState<Item | null>(null);
 
   const items = useMemo<Item[]>(() => {
     if (!loc) return [];
@@ -149,21 +149,21 @@ export function NearbyPage() {
   ];
 
   const busyOffer = claim.isPending ? claim.variables?.offerId : null;
-  const busyNeed = contact.isPending ? contact.variables?.needId : null;
 
   function requestFood(i: Item) {
     claim.mutate({ offerId: i.id }, { onSuccess: (r) => { toast.success("Request sent. The giver has 15 minutes to accept."); router.push(`/dashboard/claims/${r.id}`); }, onError: (e) => toast.error(e.message) });
   }
-  function offerFood(i: Item) {
-    // no open post yet: take the giver to the post form, pre-filled from this request
-    if (!i.forOfferId) return router.push(postForNeedUrl(i));
-    contact.mutate({ needId: i.id, offerId: i.forOfferId }, { onSuccess: () => toast.success("Offer sent. They have 15 minutes to accept."), onError: (e) => toast.error(e.message) });
-  }
 
   const active = me.status === "ACTIVE";
 
+  const bestOpen = [...(myOffers.data ?? [])].filter((o) => o.status === "OPEN").sort((x, y) => x.expiresAt.localeCompare(y.expiresAt))[0];
   return (
     <div className="space-y-5">
+      <OfferToNeedDialog
+        need={offerTo ? { id: offerTo.id, title: offerTo.title, mealsNeeded: offerTo.meals, diet: offerTo.diet, mode: offerTo.mode, takerName: offerTo.who.split(" · ")[0] } : null}
+        onClose={() => setOfferTo(null)}
+        existing={bestOpen ? { id: bestOpen.id, title: bestOpen.title } : null}
+      />
       <div>
         <h1 className="font-display text-2xl font-semibold sm:text-3xl">Nearby</h1>
         <p className="text-muted-foreground">{isGiver ? "Food wanted by receivers near you, best match first." : "Food available near you, best match first."}</p>
@@ -242,8 +242,8 @@ export function NearbyPage() {
                     </Button>
                   )}
                   {i.kind === "need" && isGiver && (
-                    <Button className="h-10 flex-1" disabled={!active || busyNeed === i.id} onClick={(e) => { e.stopPropagation(); offerFood(i); }}>
-                      {busyNeed === i.id ? "Please wait..." : i.forOfferId ? "Offer my food" : "Post food for this"}
+                    <Button className="h-10 flex-1" disabled={!active} onClick={(e) => { e.stopPropagation(); setOfferTo(i); }}>
+                      Offer food
                     </Button>
                   )}
                   {i.kind === "offer" && (

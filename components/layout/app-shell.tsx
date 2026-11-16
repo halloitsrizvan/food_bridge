@@ -113,7 +113,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
         <Link href="/" className="mb-6 px-2">
           <Logo />
         </Link>
-        <nav className="flex flex-1 flex-col gap-1" aria-label="Main">
+        <nav className="mb-4 mt-auto flex flex-col gap-1" aria-label="Main">
           {items.map((n) => (
             <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors", active(n.href) ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
               <n.icon className="size-5" aria-hidden /> {n.label}

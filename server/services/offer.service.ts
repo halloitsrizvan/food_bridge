@@ -143,7 +143,7 @@ export const offerService = {
   async getPublic(id: string): Promise<PublicOffer> {
     await maintenanceService.sweepIfStale();
     const o = await offerRepository.findById(id);
-    if (!o || o.giver.status !== "ACTIVE") throw AppError.notFound("Post not found");
+    if (!o || o.direct || o.giver.status !== "ACTIVE") throw AppError.notFound("Post not found");
     return toPublicOffer(o);
   },
 

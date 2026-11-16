@@ -1,0 +1,1 @@
+ALTER TABLE "offers" ADD COLUMN "direct" BOOLEAN NOT NULL DEFAULT false;
