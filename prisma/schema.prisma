@@ -1,5 +1,7 @@
-// DATABASE_URL = Supabase pooled connection (pgbouncer, port 6543) — used at runtime.
-// DIRECT_URL   = Supabase direct connection (port 5432) — used by db push / migrate.
+// DATABASE_URL = Supabase pooled connection (transaction pooler, pgbouncer) - runtime.
+// DIRECT_URL   = Supabase direct / session connection - migrations.
+// NOTE: the partial unique index "one active claim per offer", RLS and the realtime policy
+// are raw SQL: see prisma/migrations/0001_init/migration.sql.
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,17 +13,295 @@ datasource db {
 }
 
 enum Role {
-  USER
-  ADMIN
+  GOV
+  GIVER
+  TAKER
 }
 
-/// One row per Supabase auth user. `id` equals auth.users.id.
-model Profile {
-  id        String   @id @db.Uuid
-  email     String   @unique
-  name      String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
+enum GiverKind {
+  RESTAURANT
+  CATERER
+  HOUSEHOLD
+  EVENT
+}
 
-  @@index([role])
+enum TakerKind {
+  INSTITUTION
+  CHARITY
+  HOUSE
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  APPEALING
+}
+
+enum Tier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum FoodCategory {
+  COOKED
+  PACKAGED
+  RAW
+}
+
+enum Diet {
+  VEG
+  NON_VEG
+  BOTH
+}
+
+enum HandoverMode {
+  GIVER_DELIVERS
+  TAKER_PICKS_UP
+  EITHER
+}
+
+enum OfferStatus {
+  OPEN
+  CONTACTED
+  SETTLED
+  DELIVERED
+  EXPIRED
+  CANCELLED
+}
+
+enum NeedStatus {
+  OPEN
+  CONTACTED
+  SETTLED
+  FULFILLED
+  EXPIRED
+  CANCELLED
+}
+
+enum ClaimStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  COMPLETED
+}
+
+enum AppealStatus {
+  OPEN
+  APPROVED
+  REJECTED
+}
+
+model Profile {
+  id            String        @id @db.Uuid
+  role          Role
+  giverKind     GiverKind?    @map("giver_kind")
+  takerKind     TakerKind?    @map("taker_kind")
+  name          String
+  email         String        @unique
+  phone         String
+  mapsUrl       String?       @map("maps_url")
+  address       String        @default("")
+  area          String        @default("")
+  lat           Float?
+  lng           Float?
+  members       Int?
+  openToReceive Boolean       @default(true) @map("open_to_receive")
+  onboarded     Boolean       @default(false)
+  status        AccountStatus @default(ACTIVE)
+  points        Int           @default(0)
+  trustScore    Int           @default(70) @map("trust_score")
+  tier          Tier          @default(BRONZE)
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  offers         Offer[]        @relation("GiverOffers")
+  needs          Need[]         @relation("TakerNeeds")
+  givenClaims    Claim[]        @relation("ClaimGiver")
+  takenClaims    Claim[]        @relation("ClaimTaker")
+  reviewsGiven   Review[]       @relation("ReviewFrom")
+  reviewsGot     Review[]       @relation("ReviewTo")
+  complaintsMade Complaint[]    @relation("ComplaintFrom")
+  complaintsGot  Complaint[]    @relation("ComplaintAgainst")
+  appeals        Appeal[]       @relation("AppealAccount")
+  ledger         PointLedger[]
+  notifications  Notification[]
+
+  @@index([role, status])
+  @@index([lat, lng])
+  @@index([role, openToReceive, status])
+  @@map("profiles")
+}
+
+model Offer {
+  id               String       @id @default(uuid()) @db.Uuid
+  giverId          String       @map("giver_id") @db.Uuid
+  title            String
+  description      String       @default("")
+  category         FoodCategory
+  diet             Diet
+  quantityMeals    Int          @map("quantity_meals")
+  cookedAt         DateTime?    @map("cooked_at")
+  expectedExpiryAt DateTime     @map("expected_expiry_at")
+  safeUntil        DateTime     @map("safe_until")
+  mode             HandoverMode
+  photoUrl         String?      @map("photo_url")
+  status           OfferStatus  @default(OPEN)
+  scheduledFor     DateTime?    @map("scheduled_for")
+  escalationLevel  Int          @default(0) @map("escalation_level")
+  govAlerted       Boolean      @default(false) @map("gov_alerted")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  giver  Profile @relation("GiverOffers", fields: [giverId], references: [id])
+  claims Claim[]
+
+  @@index([status, expectedExpiryAt])
+  @@index([status, safeUntil])
+  @@index([giverId, status])
+  @@map("offers")
+}
+
+model Need {
+  id          String       @id @default(uuid()) @db.Uuid
+  takerId     String       @map("taker_id") @db.Uuid
+  title       String
+  notes       String       @default("")
+  diet        Diet
+  mealsNeeded Int          @map("meals_needed")
+  neededFrom  DateTime     @map("needed_from")
+  neededBy    DateTime     @map("needed_by")
+  mode        HandoverMode
+  status      NeedStatus   @default(OPEN)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  taker  Profile @relation("TakerNeeds", fields: [takerId], references: [id])
+  claims Claim[]
+
+  @@index([status, neededBy])
+  @@index([takerId, status])
+  @@map("needs")
+}
+
+model Claim {
+  id             String      @id @default(uuid()) @db.Uuid
+  offerId        String      @map("offer_id") @db.Uuid
+  needId         String?     @map("need_id") @db.Uuid
+  takerId        String      @map("taker_id") @db.Uuid
+  giverId        String      @map("giver_id") @db.Uuid
+  initiatedBy    Role        @map("initiated_by")
+  status         ClaimStatus @default(PENDING)
+  holdUntil      DateTime    @map("hold_until")
+  otpHash        String?     @map("otp_hash")
+  otpSalt        String?     @map("otp_salt")
+  otpExpiresAt   DateTime?   @map("otp_expires_at")
+  acceptedAt     DateTime?   @map("accepted_at")
+  completedAt    DateTime?   @map("completed_at")
+  mealsDelivered Int?        @map("meals_delivered")
+  handoverPhoto  String?     @map("handover_photo")
+  scoreSnapshot  Json?       @map("score_snapshot")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  offer      Offer       @relation(fields: [offerId], references: [id])
+  need       Need?       @relation(fields: [needId], references: [id])
+  taker      Profile     @relation("ClaimTaker", fields: [takerId], references: [id])
+  giver      Profile     @relation("ClaimGiver", fields: [giverId], references: [id])
+  reviews    Review[]
+  complaints Complaint[]
+  ledger     PointLedger[]
+
+  @@index([status, holdUntil])
+  @@index([offerId, status])
+  @@index([takerId, status])
+  @@index([giverId, status])
+  @@map("claims")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  claimId   String   @map("claim_id") @db.Uuid
+  fromId    String   @map("from_id") @db.Uuid
+  toId      String   @map("to_id") @db.Uuid
+  rating    Int
+  comment   String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  claim Claim   @relation(fields: [claimId], references: [id])
+  from  Profile @relation("ReviewFrom", fields: [fromId], references: [id])
+  to    Profile @relation("ReviewTo", fields: [toId], references: [id])
+
+  @@unique([claimId, fromId])
+  @@index([toId])
+  @@map("reviews")
+}
+
+model Complaint {
+  id        String   @id @default(uuid()) @db.Uuid
+  claimId   String   @map("claim_id") @db.Uuid
+  fromId    String   @map("from_id") @db.Uuid
+  againstId String   @map("against_id") @db.Uuid
+  reason    String
+  weight    Float
+  createdAt DateTime @default(now()) @map("created_at")
+
+  claim   Claim   @relation(fields: [claimId], references: [id])
+  from    Profile @relation("ComplaintFrom", fields: [fromId], references: [id])
+  against Profile @relation("ComplaintAgainst", fields: [againstId], references: [id])
+
+  @@unique([claimId, fromId])
+  @@index([againstId, createdAt])
+  @@map("complaints")
+}
+
+model Appeal {
+  id        String       @id @default(uuid()) @db.Uuid
+  accountId String       @map("account_id") @db.Uuid
+  message   String
+  status    AppealStatus @default(OPEN)
+  decidedBy String?      @map("decided_by") @db.Uuid
+  decidedAt DateTime?    @map("decided_at")
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  account Profile @relation("AppealAccount", fields: [accountId], references: [id])
+
+  @@index([status, createdAt])
+  @@map("appeals")
+}
+
+model PointLedger {
+  id        String   @id @default(uuid()) @db.Uuid
+  accountId String   @map("account_id") @db.Uuid
+  claimId   String?  @map("claim_id") @db.Uuid
+  delta     Int
+  reason    String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  account Profile @relation(fields: [accountId], references: [id])
+  claim   Claim?  @relation(fields: [claimId], references: [id])
+
+  @@index([accountId, createdAt])
+  @@map("point_ledger")
+}
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      String
+  title     String
+  body      String
+  link      String    @default("")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user Profile @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model AppConfig {
+  key   String @id
+  value Json
+
+  @@map("app_config")
 }

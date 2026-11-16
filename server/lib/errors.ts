@@ -7,6 +7,8 @@ export type ErrorCode =
   | "NOT_FOUND"
   | "CONFLICT"
   | "RATE_LIMITED"
+  | "ACCOUNT_SUSPENDED"
+  | "ONBOARDING_REQUIRED"
   | "INTERNAL";
 
 export class AppError extends Error {
@@ -28,6 +30,12 @@ export class AppError extends Error {
   }
   static forbidden(message = "You do not have access to this resource") {
     return new AppError(403, "FORBIDDEN", message);
+  }
+  static suspended() {
+    return new AppError(403, "ACCOUNT_SUSPENDED", "Your account is suspended. You can read but not post or claim. Submit an appeal.");
+  }
+  static onboardingRequired() {
+    return new AppError(403, "ONBOARDING_REQUIRED", "Finish onboarding first");
   }
   static notFound(message = "Not found") {
     return new AppError(404, "NOT_FOUND", message);

@@ -4,7 +4,7 @@ import type { Profile } from "@prisma/client";
 import { connection, NextResponse } from "next/server";
 import { z } from "zod";
 import type { Role } from "@/lib/schemas/profile";
-import { requireRole, requireUser } from "./auth";
+import { requireActiveAccount, requireOnboarded, requireRole, requireUser } from "./auth";
 import { AppError } from "./errors";
 import { clientIp, rateLimit } from "./rate-limit";
 
@@ -13,6 +13,10 @@ type Opts<B extends z.ZodType | undefined, Q extends z.ZodType | undefined> = {
   auth?: true | Role[];
   body?: B;
   query?: Q;
+  /** Reject SUSPENDED/APPEALING accounts (use on every write route). */
+  active?: boolean;
+  /** Reject accounts that have not completed onboarding. */
+  onboarded?: boolean;
   /** Per-instance limiter, keyed by name + user id (or IP when public). */
   rateLimit?: { name: string; limit: number; windowMs: number };
 };
@@ -60,6 +64,9 @@ export function route<
       let user: Profile | null = null;
       if (opts.auth === true) user = await requireUser();
       else if (Array.isArray(opts.auth)) user = await requireRole(...opts.auth);
+
+      if (user && opts.active) requireActiveAccount(user);
+      if (user && opts.onboarded) requireOnboarded(user);
 
       if (opts.rateLimit) {
         const { name, limit, windowMs } = opts.rateLimit;
