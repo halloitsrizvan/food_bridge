@@ -143,6 +143,8 @@ export type NeedDTO = {
   lng: number | null;
   members: number | null;
   match?: MatchInfo;
+  /** giver view: the own offer this need was scored against */
+  forOfferId?: string;
 };
 
 export const ContactNeedSchema = z.object({ offerId: z.uuid() });
