@@ -137,7 +137,7 @@ async function createClaim(args: { offerId: string; needId?: string; initiator: 
   const eff = effectiveExpiry(offer0);
   const f = feasibility({ lat: giver.lat, lng: giver.lng }, { lat: taker.lat, lng: taker.lng }, eff, cfg);
   if (!f.feasible) throw AppError.badRequest("The food would spoil before it can be handed over");
-  const snapshot = await matchService.scoreFor(offer0, taker, need?.mealsNeeded, need?.diet, need?.mode);
+  const snapshot = await matchService.scoreFor(offer0, taker, need?.mealsNeeded, need?.diet);
 
   try {
     const claim = await prisma.$transaction(async (tx) => {

@@ -1,22 +1,29 @@
 "use client";
 
-import { animate, useMotionValue, useReducedMotion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { animate, useReducedMotion } from "framer-motion";
+import { useEffect, useRef } from "react";
 
-/** Animated number for impact counters. Skips animation with prefers-reduced-motion. */
+/** Animated number for impact counters. Writes straight to the DOM (no per-frame renders); skipped with prefers-reduced-motion. */
 export function CountUp({ value, decimals = 0, className }: { value: number; decimals?: number; className?: string }) {
   const reduce = useReducedMotion();
-  const mv = useMotionValue(0);
-  const [shown, setShown] = useState(reduce ? value : 0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const fmt = (n: number) => n.toLocaleString("en-IN", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
     if (reduce) {
-      setShown(value);
+      el.textContent = fmt(value);
       return;
     }
-    const controls = animate(mv, value, { duration: 1.4, ease: "easeOut", onUpdate: (v) => setShown(v) });
+    const controls = animate(0, value, { duration: 1.4, ease: "easeOut", onUpdate: (v) => (el.textContent = fmt(v)) });
     return () => controls.stop();
-  }, [value, reduce, mv]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, reduce, decimals]);
 
-  return <span className={className}>{shown.toLocaleString("en-IN", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}</span>;
+  return (
+    <span ref={ref} className={className}>
+      {fmt(value)}
+    </span>
+  );
 }

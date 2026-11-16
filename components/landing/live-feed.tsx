@@ -44,17 +44,18 @@ export function LiveFeed() {
   const [category, setCategory] = useState<string>();
   const [maxMin, setMaxMin] = useState<number>();
   const [sort, setSort] = useState<"soonest" | "newest">("soonest");
-  const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<PublicOffer | null>(null);
   const [loginFor, setLoginFor] = useState<PublicOffer | null>(null);
 
   const dq = useDebounced(q);
   const darea = useDebounced(area);
+  // page resets whenever any filter changes (derived, no effect)
+  const filterKey = JSON.stringify([dq, darea, diet, category, maxMin, sort]);
+  const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
+  const page = pageState.key === filterKey ? pageState.page : 1;
+  const setPage = (fn: (p: number) => number) => setPageState({ key: filterKey, page: fn(page) });
   const filters: OfferFilters = { q: dq || undefined, area: darea || undefined, diet, category, maxMinutesLeft: maxMin, sort, page, limit: 9 };
   const { data, isPending, isError, refetch, isPlaceholderData } = useOffers(filters);
-
-  // any filter change returns to page 1
-  useEffect(() => setPage(1), [dq, darea, diet, category, maxMin, sort]);
 
   function contact(o: PublicOffer) {
     if (!me) return setLoginFor(o); // claim needs a login: open the modal, then continue

@@ -13,6 +13,7 @@ import { buttonVariants, Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useCancelNeed, useClaimOffer, useFeed, useMyClaims, useMyNeeds, useOpenToReceive } from "@/lib/api/hooks";
 import { formatLeft, KIND_LABEL } from "@/lib/format";
+import { useNow } from "@/lib/use-now";
 import type { ProfileDTO } from "@/lib/schemas/profile";
 import { cn } from "@/lib/utils";
 import { Stat } from "./giver-home";
@@ -25,6 +26,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
   const claims = useMyClaims();
   const claim = useClaimOffer();
   const cancelNeed = useCancelNeed();
+  const now = useNow();
 
   const done = (claims.data ?? []).filter((c) => c.status === "COMPLETED");
   const meals = done.reduce((s, c) => s + (c.mealsDelivered ?? 0), 0);
@@ -104,7 +106,7 @@ export function TakerHome({ me }: { me: ProfileDTO }) {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-display font-semibold">{n.title}</p>
-                    <p className="text-sm text-muted-foreground">{n.mealsNeeded} meals · by <span className="tabular">{formatLeft(new Date(n.neededBy).getTime() - Date.now())}</span></p>
+                    <p className="text-sm text-muted-foreground">{n.mealsNeeded} meals · by <span className="tabular">{now ? formatLeft(new Date(n.neededBy).getTime() - now) : "…"}</span></p>
                   </div>
                   {n.status === "OPEN" && (
                     <Button variant="ghost" size="sm" className="text-clay" disabled={cancelNeed.isPending} onClick={() => cancelNeed.mutate(n.id, { onSuccess: () => toast("Need cancelled"), onError: (e) => toast.error(e.message) })}>

@@ -15,6 +15,7 @@ import { buttonVariants, Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useContactNeed, useMyClaims, useMyOffers, useNeedsNear } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
+import { useNow } from "@/lib/use-now";
 import type { ProfileDTO } from "@/lib/schemas/profile";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
   const needs = useNeedsNear();
   const contact = useContactNeed();
   const [pendingNeed, setPendingNeed] = useState<string | null>(null);
+  const now = useNow();
 
   if (offers.isPending || claims.isPending) return <PageSkeleton />;
   if (offers.isError) return <ErrorState message={offers.error.message} onRetry={() => offers.refetch()} />;
@@ -123,7 +125,7 @@ export function GiverHome({ me }: { me: ProfileDTO }) {
                     <p className="truncate font-display font-semibold">{n.title}</p>
                     <p className="truncate text-xs text-muted-foreground">{n.takerName} · {n.area} · {n.mealsNeeded} meals{n.members ? ` · ${n.members} members` : ""}</p>
                   </div>
-                  <span className="text-right text-xs text-muted-foreground">by<br /><b className="tabular text-foreground">{formatLeft(new Date(n.neededBy).getTime() - Date.now())}</b></span>
+                  <span className="text-right text-xs text-muted-foreground">by<br /><b className="tabular text-foreground">{now ? formatLeft(new Date(n.neededBy).getTime() - now) : "…"}</b></span>
                 </div>
                 {n.match ? <WhyMatch match={n.match} /> : <p className="text-xs text-muted-foreground">Post food to see how well it matches.</p>}
                 <Button

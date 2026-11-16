@@ -29,7 +29,7 @@ function offerRadius(o: OfferWithGiver, cfg: Awaited<ReturnType<typeof configSer
 
 export const matchService = {
   /** Score ONE offer for ONE taker (used by claim snapshots and the claim screen). */
-  async scoreFor(offer: OfferWithGiver, taker: Profile, wantMeals?: number, needDiet?: "VEG" | "NON_VEG" | "BOTH", needMode?: "GIVER_DELIVERS" | "TAKER_PICKS_UP" | "EITHER") {
+  async scoreFor(offer: OfferWithGiver, taker: Profile, wantMeals?: number, needDiet?: "VEG" | "NON_VEG" | "BOTH") {
     if (offer.giver.lat == null || offer.giver.lng == null || taker.lat == null || taker.lng == null) return null;
     const cfg = await configService.get();
     const f = feasibility({ lat: offer.giver.lat, lng: offer.giver.lng }, { lat: taker.lat, lng: taker.lng }, effectiveExpiry(offer), cfg);
