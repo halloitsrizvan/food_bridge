@@ -45,3 +45,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# presentation skill workdir
+docs/pitch/node_modules

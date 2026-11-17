@@ -1,0 +1,87 @@
+{
+  "name": "FoodBridge",
+  "url": "foodbridge-amber.vercel.app",
+  "out": "../../docs/FoodBridge-Pitch.pptx",
+  "shotsDir": "shots",
+  "theme": {
+    "dark": "032724",
+    "primary": "088178",
+    "accent": "F6C445",
+    "info": "2F80C9",
+    "danger": "D9534F",
+    "ink": "212529",
+    "muted": "667085",
+    "light": "F5F5F5",
+    "font": "Calibri"
+  },
+  "logoIcon": "LuSoup",
+  "problem": {
+    "question": "When did you last throw away food that was still good?",
+    "line": "Restaurants, caterers and homes bin their leftovers, while a charity kitchen nearby feeds 150 people with too little.",
+    "badge": "A government-run food-surplus network",
+    "heroShot": "landing-hero.png"
+  },
+  "evidence": {
+    "title": "The problem is real, and it is huge",
+    "stats": [
+      { "icon": "LuGlobe", "number": "1.05 billion", "text": "tonnes of food wasted worldwide in 2022, about 19% of all food available", "source": "UNEP Food Waste Index Report 2024" },
+      { "icon": "LuHouse", "number": "78 million", "text": "tonnes wasted by Indian households in 2022, about 55 kg per person", "source": "UNEP Food Waste Index Report 2024" },
+      { "icon": "LuUsers", "number": "~195 million", "text": "people in India are undernourished (2021 to 2023)", "source": "FAO, State of Food Security and Nutrition 2024" }
+    ],
+    "clock": {
+      "big": "4 h",
+      "text": "The food exists. The hunger exists. What is missing is the match, and cooked food is only safe for about four hours.",
+      "sub": "Food waste also drives 8 to 10% of global greenhouse-gas emissions (UNEP)."
+    }
+  },
+  "solution": {
+    "title": "FoodBridge connects surplus to need",
+    "steps": [
+      { "title": "Share", "text": "A restaurant, caterer or home posts leftover food. We work out how long it stays safe." },
+      { "title": "Match", "text": "Receivers who can reach it in time are alerted, nearest and best match first." },
+      { "title": "Hand over", "text": "A QR scan or 6-digit code confirms the handover. Points and a certificate follow." }
+    ],
+    "chips": ["Free · no middlemen · run by the government", "Plus an AI assistant that guides new users"],
+    "shot": "landing-feed.png"
+  },
+  "tour": {
+    "title": "Product tour: every page, one slide",
+    "tiles": [
+      { "shot": "landing-feed.png", "path": "/", "label": "Landing: live food near you" },
+      { "shot": "giver-dashboard.png", "path": "/dashboard", "label": "Giver: post, edit, offer" },
+      { "shot": "receiver-dashboard.png", "path": "/dashboard", "label": "Receiver: ranked food, needs" },
+      { "shot": "receiver-nearby.png", "path": "/dashboard/nearby", "label": "Nearby: map of food or needs" },
+      { "shot": "claim-top.png", "path": "/dashboard/claims", "label": "Match score + QR handover" },
+      { "shot": "gov-overview.png", "path": "/gov", "label": "Government: KPIs, map, rules" }
+    ]
+  },
+  "usp": {
+    "title": "Smart match, verified handover",
+    "mainShot": "claim-top.png",
+    "mainPath": "/dashboard/claims",
+    "cards": ["handover-card.png", "poster.png"],
+    "captions": ["QR card for the giver", "Poster after delivery"],
+    "chips": ["Six-factor match score", "Safe clock + 15 min hold", "Scan or type the code", "Review is required", "Address shared only after accept"]
+  },
+  "beforeAfter": {
+    "title": "Before and after",
+    "before": { "big": "Hours", "items": ["Phone calls and WhatsApp groups", "Food spoils before a taker is found", "No proof, no trust, no data"] },
+    "after": { "big": "Minutes", "items": ["Nearest reachable receiver alerted at once", "Countdown and hold keep it moving", "Verified handover, poster, live impact"] }
+  },
+  "closing": {
+    "title": "Honest limits, next steps, thank you",
+    "limits": ["Straight-line distance, not road routing", "Safety is time-based; no temperature checks", "Accounts are not identity-verified yet", "Alerts are in-app and email; no SMS yet"],
+    "next": ["Road routing and live ETA", "SMS, WhatsApp and push alerts", "Malayalam and Hindi interface", "Verified organisations, district rollout"],
+    "stack": ["Next.js, TypeScript, Tailwind", "Supabase Postgres, Auth, Realtime", "Prisma, Zod, Leaflet and OpenStreetMap", "Vercel, with a Groq AI assistant"],
+    "thanks": "Thank you. Questions?"
+  },
+  "notes": [
+    "~30 sec. ICEBREAKER: ask the room when they last binned good food. Who is hurt, and why nobody can find each other in time.",
+    "~35 sec. Evidence and cost. Name the sources. The cost that matters most is time.",
+    "~30 sec. In plain words: share, match, hand over.",
+    "~50 sec. Walk the six tiles in the user's order; this is the live-demo map.",
+    "~35 sec. The differentiator: explained match, verified handover, privacy.",
+    "~25 sec. Before: hours of calls and spoiled food. After: minutes and a verified handover.",
+    "~20 sec. Limits that are true today, roadmap that follows from them, thank the judges."
+  ]
+}
