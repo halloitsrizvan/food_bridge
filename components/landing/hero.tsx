@@ -20,7 +20,7 @@ function FloatingCard() {
       initial={reduce ? false : { opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className="absolute bottom-4 right-4 w-[15.5rem] rounded-3xl bg-background p-3 text-foreground shadow-lift sm:bottom-6 sm:right-6"
+      className="absolute bottom-4 right-4 hidden w-[15.5rem] rounded-3xl bg-background p-3 text-foreground shadow-lift sm:bottom-6 sm:right-6 sm:block"
     >
       <div className="grid h-28 place-items-center rounded-2xl bg-secondary">
         {o ? <CategoryChip category={o.category} className="size-14 rounded-2xl [&_svg]:size-7" /> : <span className="text-xs text-muted-foreground">Live posts appear here</span>}

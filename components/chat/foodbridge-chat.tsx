@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Bot, LoaderCircle, MessageCircle, Send, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,11 +17,27 @@ const welcome: Message = {
 const suggestions = ["How do I donate food?", "How does the OTP handover work?", "What food is safe to share?"];
 
 export function FoodBridgeChat() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([welcome]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+
+  // Popup greeting: open once per browser session, only on the landing page.
+  useEffect(() => {
+    if (pathname !== "/") return;
+    try {
+      if (sessionStorage.getItem("fb:chat-popup")) return;
+    } catch {}
+    const id = setTimeout(() => {
+      setOpen(true);
+      try {
+        sessionStorage.setItem("fb:chat-popup", "1");
+      } catch {}
+    }, 1500);
+    return () => clearTimeout(id);
+  }, [pathname]);
 
   useEffect(() => {
     if (open) endRef.current?.scrollIntoView({ behavior: "smooth" });

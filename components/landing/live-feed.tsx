@@ -64,8 +64,13 @@ export function LiveFeed() {
       setCategory(d.category);
       setDiet(d.diet);
     };
+    const onSearch = (e: Event) => setQ((e as CustomEvent<{ q?: string }>).detail?.q ?? "");
     window.addEventListener("fb:filter", on);
-    return () => window.removeEventListener("fb:filter", on);
+    window.addEventListener("fb:search", onSearch);
+    return () => {
+      window.removeEventListener("fb:filter", on);
+      window.removeEventListener("fb:search", onSearch);
+    };
   }, []);
   const dq = useDebounced(q);
   const darea = useDebounced(area);

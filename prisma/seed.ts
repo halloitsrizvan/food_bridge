@@ -60,6 +60,7 @@ const TAKERS: T[] = [
   { email: "family.salim@foodbridge.demo", name: "Salim's Family", kind: "HOUSE", area: "Kallai", lat: 11.2391, lng: 75.7812, address: "Kallai Colony", members: 7, trust: 74 },
   { email: "hope.centre@foodbridge.demo", name: "Hope Rehabilitation Centre", kind: "CHARITY", area: "Elathur", lat: 11.3078, lng: 75.7611, address: "Hope Centre, Elathur", members: 45, trust: 82 },
   { email: "ashraya@foodbridge.demo", name: "Ashraya Shelter", kind: "INSTITUTION", area: "Feroke", lat: 11.1904, lng: 75.8244, address: "Ashraya, Feroke", members: 52, trust: 76 },
+  { email: "demo.receiver@foodbridge.demo", name: "FoodBridge Demo Shelter", kind: "CHARITY", area: "Pottammal", lat: 11.2471, lng: 75.8039, address: "Pottammal, Kozhikode", members: 40, trust: 88 },
 ];
 
 async function main() {

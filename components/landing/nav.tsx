@@ -22,9 +22,19 @@ export function setFeedFilter(detail: { q?: string; category?: string; diet?: st
   document.getElementById("live")?.scrollIntoView({ behavior: "smooth" });
 }
 
+// Live search: updates only the text query (keeps category/diet chips), optionally scrolls to the feed.
+function searchFeed(q: string, scroll: boolean) {
+  window.dispatchEvent(new CustomEvent("fb:search", { detail: { q } }));
+  if (scroll) document.getElementById("live")?.scrollIntoView({ behavior: "smooth" });
+}
+
 export function LandingNav() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const onType = (v: string) => {
+    setQ(v);
+    searchFeed(v, false);
+  };
   const [scrolled, setScrolled] = useState(false);
   const { data: me } = useMe();
   const loc = useLocation();
@@ -94,14 +104,14 @@ export function LandingNav() {
             className={cn("relative hidden min-w-0 transition-all duration-300 md:block", scrolled ? "ml-auto w-48 lg:w-60" : "mx-auto max-w-xl flex-1")}
             onSubmit={(e) => {
               e.preventDefault();
-              setFeedFilter({ q });
+              searchFeed(q, true);
             }}
           >
             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <input
               aria-label="Search food"
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e) => onType(e.target.value)}
               placeholder="Search biryani, sadhya, bread..."
               className={cn("w-full rounded-full border bg-secondary pl-11 pr-4 text-sm outline-none transition-[height] duration-300 placeholder:text-muted-foreground focus:border-primary focus:bg-background", scrolled ? "h-10" : "h-11")}
             />
@@ -125,6 +135,25 @@ export function LandingNav() {
           </div>
         </div>
       </div>
+      <form
+        role="search"
+        className="relative border-b bg-background px-4 py-2 md:hidden"
+        onSubmit={(e) => {
+          e.preventDefault();
+          searchFeed(q, true);
+        }}
+      >
+        <Search className="pointer-events-none absolute left-8 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <input
+          aria-label="Search food"
+          type="search"
+          enterKeyHint="search"
+          value={q}
+          onChange={(e) => onType(e.target.value)}
+          placeholder="Search biryani, sadhya, bread..."
+          className="h-11 w-full rounded-full border bg-secondary pl-11 pr-4 text-base outline-none placeholder:text-muted-foreground focus:border-primary focus:bg-background"
+        />
+      </form>
       <div className={cn("hidden grid-rows-[1fr] transition-[grid-template-rows] duration-300 md:grid", scrolled && "grid-rows-[0fr]")} inert={scrolled}>
         <div className="min-h-0 overflow-hidden border-b">
         <nav className="mx-auto flex h-12 max-w-[1680px] items-center gap-6 px-4 text-sm font-medium sm:px-8" aria-label="Page sections">
@@ -143,24 +172,6 @@ export function LandingNav() {
       </div>
       {open && (
         <div id="mobile-menu" className={cn("max-h-[calc(100dvh-7rem)] overflow-y-auto border-b bg-background px-4 pb-4 pt-3 shadow-lift", scrolled ? "xl:hidden" : "md:hidden")}>
-          <form
-            role="search"
-            className="relative mb-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setOpen(false);
-              setFeedFilter({ q });
-            }}
-          >
-            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-            <input
-              aria-label="Search food"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search biryani, sadhya, bread..."
-              className="h-12 w-full rounded-full border bg-secondary pl-11 pr-4 text-base outline-none placeholder:text-muted-foreground focus:border-primary focus:bg-background"
-            />
-          </form>
           <nav aria-label="Sections" className="grid">
             <button
               type="button"
