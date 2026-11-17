@@ -4,8 +4,9 @@ import { ArrowUpRight, Landmark, ChevronLeft, ChevronRight, Carrot, Drumstick, H
 import Link from "next/link";
 import { useRef } from "react";
 import { Logo } from "@/components/layout/logo";
+import { Avatar, kindLabel } from "@/components/shared/badges";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { useMe, useOffers } from "@/lib/api/hooks";
+import { useLeaderboard, useMe, useOffers } from "@/lib/api/hooks";
 import { formatLeft } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { useNow } from "@/lib/use-now";
@@ -174,6 +175,45 @@ export function HowItWorks() {
             <p className="mt-1.5 text-sm text-muted-foreground">{s.body}</p>
           </li>
         ))}
+      </ol>
+    </section>
+  );
+}
+
+export function TopGivers() {
+  const t = useT();
+  const { data: me } = useMe();
+  const { data, isPending } = useLeaderboard();
+  const rows = (data ?? []).filter((g) => g.points > 0).slice(0, 5);
+  if (!isPending && rows.length === 0) return null;
+  return (
+    <section id="top-givers" className="mx-auto grid max-w-[1680px] scroll-mt-32 gap-8 px-4 py-14 sm:px-8 lg:grid-cols-[1fr_1.7fr] lg:gap-14">
+      <div className="lg:pt-2">
+        <h2 className="font-display text-2xl font-semibold sm:text-4xl">{t.top.title}</h2>
+        <p className="mt-3 max-w-sm text-muted-foreground">{t.top.sub}</p>
+        <Link href={me?.role === "GIVER" ? "/dashboard/post" : "/signup"} className={cn(buttonVariants({ variant: "outline" }), "mt-6 h-11 px-6")}>
+          {t.top.cta}
+        </Link>
+      </div>
+      <ol className="divide-y overflow-hidden rounded-[20px] border bg-background" aria-label={t.top.title}>
+        {isPending
+          ? Array.from({ length: 5 }, (_, i) => <li key={i} className="h-[4.5rem] animate-pulse bg-secondary/50" />)
+          : rows.map((g, i) => (
+              <li key={g.rank} className="flex items-center gap-4 px-4 py-3.5 sm:px-5">
+                <span className={cn("w-6 shrink-0 text-center font-display text-lg font-semibold tabular", i === 0 ? "text-[#b7791f]" : "text-muted-foreground")}>{g.rank}</span>
+                <Avatar name={g.name} kind={g.kind} size={40} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">{g.name}</p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {[kindLabel(g.kind), g.area].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="font-display text-xl font-semibold tabular text-primary">{g.points.toLocaleString("en-IN")}</p>
+                  <p className="text-xs text-muted-foreground">{g.meals > 0 ? `${g.meals} ${t.common.meals}` : t.top.points}</p>
+                </div>
+              </li>
+            ))}
       </ol>
     </section>
   );

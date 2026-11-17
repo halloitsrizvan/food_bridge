@@ -96,6 +96,13 @@ export const en = {
       { title: "Hand over with a code", body: "Both sides agree, the giver shows a 6-digit code, the receiver enters it at pickup. Points follow." },
     ],
   },
+  top: {
+    title: "Our top givers",
+    sub: "Restaurants, caterers and homes that have shared the most food. Points are earned on every completed handover.",
+    points: "points",
+    meals: "meals shared",
+    cta: "Join them",
+  },
   faq: {
     title: "Questions",
     items: [
