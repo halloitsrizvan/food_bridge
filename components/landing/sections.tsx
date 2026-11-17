@@ -182,7 +182,7 @@ export function HowItWorks() {
 export function Faq() {
   const t = useT();
   return (
-    <section id="faq" className="mx-auto max-w-3xl scroll-mt-32 py-14">
+    <section id="faq" className="mx-auto max-w-3xl scroll-mt-32 px-4 py-14 sm:px-8">
       <h2 className="mb-6 font-display text-2xl font-semibold sm:text-4xl">{t.faq.title}</h2>
       <div className="divide-y rounded-[20px] border bg-background">
         {t.faq.items.map(({ q, a }) => (

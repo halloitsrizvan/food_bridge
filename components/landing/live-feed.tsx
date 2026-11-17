@@ -79,7 +79,7 @@ export function LiveFeed() {
   const [pageState, setPageState] = useState({ key: filterKey, page: 1 });
   const page = pageState.key === filterKey ? pageState.page : 1;
   const setPage = (fn: (p: number) => number) => setPageState({ key: filterKey, page: fn(page) });
-  const filters: OfferFilters = { q: dq || undefined, area: darea || undefined, diet, category, maxMinutesLeft: maxMin, sort: sort === "nearest" && !located ? "soonest" : sort, page, limit: 9, lat: loc.lat ?? undefined, lng: loc.lng ?? undefined };
+  const filters: OfferFilters = { q: dq || undefined, area: darea || undefined, diet, category, maxMinutesLeft: maxMin, sort: sort === "nearest" && !located ? "soonest" : sort, page, limit: 6, lat: loc.lat ?? undefined, lng: loc.lng ?? undefined };
   const { data, isPending, isError, refetch, isPlaceholderData } = useOffers(filters);
 
   const needsQ = usePublicNeeds(
@@ -171,7 +171,7 @@ export function LiveFeed() {
           {data.items.length === 0 && <p className="mb-4 text-sm text-muted-foreground">{t.feed.noneWithFilters}</p>}
           <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3 transition-opacity", isPlaceholderData && "opacity-60")} aria-live="polite">
             {data.items.map((o, i) => (
-              <PostCard key={o.id} offer={o} index={i} onOpen={() => setSelected(o)} onContact={() => contact(o)} actionLabel={me?.role === "GIVER" ? t.feed.view : t.feed.contact} />
+              <PostCard key={o.id} offer={o} index={i} onOpen={() => setSelected(o)} onContact={() => contact(o)} actionLabel={me?.role === "GIVER" ? t.feed.view : t.feed.contact} className={i >= 4 ? "hidden lg:flex" : i >= 2 ? "hidden sm:flex" : undefined} />
             ))}
           </div>
           {data.pages > 1 && (
