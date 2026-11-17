@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
+import { LogoutConfirm } from "@/components/layout/logout-confirm";
 import { Avatar, kindLabel } from "@/components/shared/badges";
 import { ErrorState, PageSkeleton } from "@/components/shared/states";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,6 @@ import { useMe, useOpenToReceive } from "@/lib/api/hooks";
 import { useAppearance, type Appearance } from "@/lib/appearance";
 import { fmt, LANGS, useLang, useT } from "@/lib/i18n";
 import { clearOfflineData, useInstall, useOnline } from "@/lib/pwa";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 
@@ -125,7 +125,6 @@ export function ProfileSettings() {
   const t = useT();
   const { lang, setLang } = useLang();
   const router = useRouter();
-  const qc = useQueryClient();
   const { data: me, isPending, isError, error, refetch } = useMe();
   const openToReceive = useOpenToReceive();
   const { theme, setTheme } = useTheme();
@@ -133,6 +132,7 @@ export function ProfileSettings() {
   const online = useOnline();
   const install = useInstall();
   const [editing, setEditing] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false); // theme is only known on the client
 
   if (isPending) return <PageSkeleton />;
@@ -140,14 +140,6 @@ export function ProfileSettings() {
   if (!me) return <ErrorState message={t.profile.loginNeeded} onRetry={() => router.replace("/login")} />;
 
   const kind = me.giverKind ?? me.takerKind;
-
-  async function logout() {
-    await clearOfflineData();
-    await createSupabaseBrowserClient().auth.signOut();
-    qc.clear();
-    router.replace("/login");
-    router.refresh();
-  }
 
   return (
     <div className="space-y-6">
@@ -297,9 +289,10 @@ export function ProfileSettings() {
         </div>
       </div>
 
-      <Button variant="outline" onClick={() => void logout()} className="h-11 gap-2 rounded-xl text-clay">
+      <Button variant="outline" onClick={() => setLogoutOpen(true)} className="h-11 gap-2 rounded-xl text-clay">
         <LogOut className="size-4" aria-hidden /> {t.common.logout}
       </Button>
+      <LogoutConfirm open={logoutOpen} onOpenChange={setLogoutOpen} />
     </div>
   );
 }

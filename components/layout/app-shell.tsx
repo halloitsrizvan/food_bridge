@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { Bell, HandHeart, MessageSquare, MapPin, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,13 +11,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Textarea } from "@/components/ui/textarea";
 import { useAppeal, useChatInbox, usePendingReview } from "@/lib/api/hooks";
 import { useT } from "@/lib/i18n";
-import { clearOfflineData } from "@/lib/pwa";
 import type { Dict } from "@/lib/i18n/en";
 import type { ProfileDTO } from "@/lib/schemas/profile";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/shared/badges";
 import { LanguageSwitcher } from "./language-switcher";
+import { LogoutConfirm } from "./logout-confirm";
 import { Logo } from "./logo";
 import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
@@ -99,20 +97,12 @@ function ReviewBanner() {
 export function AppShell({ user, children }: { user: ProfileDTO; children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const qc = useQueryClient();
   const t = useT();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const unreadChats = useChatInbox().data?.totalUnread ?? 0;
   const items = navFor(user.role, t);
   const active = (href: string) => (href === "/dashboard" ? pathname === href : pathname.startsWith(href));
   const RoleIcon = user.role === "GIVER" ? HandHeart : Soup;
-
-  async function logout() {
-    await clearOfflineData();
-    await createSupabaseBrowserClient().auth.signOut();
-    qc.clear();
-    router.replace("/login");
-    router.refresh();
-  }
 
   return (
     <div className="flex min-h-screen">
@@ -177,13 +167,14 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
                 <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="gap-2">
                   <UserRound className="size-4" aria-hidden /> {t.shell.profile}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout} className="gap-2">
+                <DropdownMenuItem onClick={() => setLogoutOpen(true)} className="gap-2">
                   <LogOut className="size-4" aria-hidden /> {t.shell.logout}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
+        <LogoutConfirm open={logoutOpen} onOpenChange={setLogoutOpen} />
         <AppealBanner status={user.status} />
         <ReviewBanner />
         <main id="main" className="min-w-0 flex-1 px-3 pb-28 pt-4 sm:px-4 sm:pt-6 md:px-8 md:pb-10">

@@ -1,17 +1,16 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { BadgePercent, LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, UserRound, Users } from "lucide-react";
+import { useState } from "react";
+import { BadgePercent, Home, LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, UserRound, Users } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/components/layout/logo";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { LogoutConfirm } from "@/components/layout/logout-confirm";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
-import { clearOfflineData } from "@/lib/pwa";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -26,10 +25,9 @@ const NAV_ITEMS = [
 
 export function GovShell({ user, children }: { user: { id: string; name: string; email: string }; children: React.ReactNode }) {
   const t = useT();
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const NAV = NAV_ITEMS.map((n) => ({ ...n, label: t.shell[n.key] }));
   const pathname = usePathname();
-  const router = useRouter();
-  const qc = useQueryClient();
   const active = (h: string) => (h === "/gov" ? pathname === h : pathname.startsWith(h));
   return (
     <div className="flex min-h-screen">
@@ -43,6 +41,9 @@ export function GovShell({ user, children }: { user: { id: string; name: string;
             </Link>
           ))}
         </nav>
+        <Link href="/" className="mb-3 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted">
+          <Home className="size-5" aria-hidden /> {t.shell.publicFeed}
+        </Link>
         <p className="truncate px-2 text-xs text-muted-foreground">{user.email}</p>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
@@ -56,11 +57,12 @@ export function GovShell({ user, children }: { user: { id: string; name: string;
             <LanguageSwitcher />
             <ThemeToggle />
             <NotificationBell userId={user.id} basePath="/gov" />
-            <Button variant="ghost" className="h-11 gap-2 rounded-xl" onClick={async () => { await clearOfflineData(); await createSupabaseBrowserClient().auth.signOut(); qc.clear(); router.replace("/login"); router.refresh(); }}>
+            <Button variant="ghost" className="h-11 gap-2 rounded-xl" onClick={() => setLogoutOpen(true)}>
               <LogOut className="size-4" aria-hidden /> <span className="hidden sm:inline">{t.shell.logout}</span>
             </Button>
           </div>
         </header>
+        <LogoutConfirm open={logoutOpen} onOpenChange={setLogoutOpen} />
         <main id="main" className="flex-1 p-4 lg:p-8">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
