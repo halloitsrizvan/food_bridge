@@ -242,3 +242,26 @@
   background-image: radial-gradient(color-mix(in oklab, #ffffff 24%, transparent) 1px, transparent 1px);
   background-size: 22px 22px;
 }
+
+/* ---- User appearance settings (profile page). Unlayered so they win over base styles. ---- */
+html[data-size="sm"] { font-size: 14px; }
+html[data-size="lg"] { font-size: 18px; }
+html[data-size="xl"] { font-size: 20px; }
+
+html[data-font="system"] { --fb-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+html[data-font="serif"] { --fb-font: Georgia, "Times New Roman", serif; }
+html[data-font="mono"] { --fb-font: var(--font-geist-mono), ui-monospace, monospace; }
+html[data-font="readable"] { --fb-font: var(--font-atkinson), system-ui, sans-serif; }
+html[data-font="system"] body, html[data-font="system"] :is(h1, h2, h3, .font-display),
+html[data-font="serif"] body, html[data-font="serif"] :is(h1, h2, h3, .font-display),
+html[data-font="mono"] body, html[data-font="mono"] :is(h1, h2, h3, .font-display),
+html[data-font="readable"] body, html[data-font="readable"] :is(h1, h2, h3, .font-display) {
+  font-family: var(--fb-font);
+}
+
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

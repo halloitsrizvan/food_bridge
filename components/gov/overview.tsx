@@ -1,6 +1,10 @@
 "use client";
 
-import { Cloud, Gavel, MessageSquareWarning, Radio, Scale, Soup, Timer, UserX } from "lucide-react";
+import { Cloud, FileDown, Gavel, LoaderCircle, MessageSquareWarning, Radio, Scale, Soup, Timer, UserX } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { exportGovPdf } from "./export-pdf";
 import { CountUp } from "@/components/shared/count-up";
 import { ErrorState, PageSkeleton } from "@/components/shared/states";
 import { useGovOverview } from "@/lib/api/hooks";
@@ -45,14 +49,32 @@ function LineChart({ data }: { data: { date: string; meals: number }[] }) {
 
 export function GovOverview() {
   const { data, isPending, isError, error, refetch } = useGovOverview();
+  const [exporting, setExporting] = useState(false);
+  async function onExport() {
+    if (!data) return;
+    setExporting(true);
+    try {
+      await exportGovPdf(data);
+    } catch {
+      toast.error("Could not create the PDF");
+    } finally {
+      setExporting(false);
+    }
+  }
   if (isPending) return <PageSkeleton />;
   if (isError) return <ErrorState message={error.message} onRetry={() => refetch()} />;
   const k = data.kpis;
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-3xl font-semibold">Overview</h1>
-        <p className="text-muted-foreground">Live platform health. Refreshes every 15 seconds.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-semibold">Overview</h1>
+          <p className="text-muted-foreground">Live platform health. Refreshes every 15 seconds.</p>
+        </div>
+        <Button variant="outline" disabled={exporting} onClick={() => void onExport()} className="h-10 gap-2">
+          {exporting ? <LoaderCircle className="size-4 animate-spin" /> : <FileDown className="size-4" />}
+          {exporting ? "Preparing PDF..." : "Export as PDF"}
+        </Button>
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Kpi icon={Soup} label="Meals delivered" value={k.meals} />

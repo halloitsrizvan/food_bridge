@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bot, LoaderCircle, MessageCircle, Send, Sparkles, X } from "lucide-react";
+import { Bot, LoaderCircle, Send, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -19,25 +19,28 @@ const suggestions = ["How do I donate food?", "How does the OTP handover work?",
 export function FoodBridgeChat() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [hint, setHint] = useState(false);
   const [messages, setMessages] = useState<Message[]>([welcome]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
-  // Popup greeting: open once per browser session, only on the landing page.
+  // Small "Chat with AI" bubble above the icon: once per browser session, landing page only.
   useEffect(() => {
     if (pathname !== "/") return;
     try {
-      if (sessionStorage.getItem("fb:chat-popup")) return;
+      if (sessionStorage.getItem("fb:chat-hint")) return;
     } catch {}
-    const id = setTimeout(() => {
-      setOpen(true);
-      try {
-        sessionStorage.setItem("fb:chat-popup", "1");
-      } catch {}
-    }, 1500);
+    const id = setTimeout(() => setHint(true), 1500);
     return () => clearTimeout(id);
   }, [pathname]);
+
+  function dismissHint() {
+    setHint(false);
+    try {
+      sessionStorage.setItem("fb:chat-hint", "1");
+    } catch {}
+  }
 
   useEffect(() => {
     if (open) endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -137,14 +140,28 @@ export function FoodBridgeChat() {
         </section>
       )}
 
+      {hint && !open && (
+        <div className="absolute bottom-full right-0 mb-3 flex w-max items-center gap-1 rounded-2xl bg-background py-2 pl-4 pr-2 text-sm font-medium shadow-lift ring-1 ring-border animate-in fade-in slide-in-from-bottom-2">
+          <button type="button" onClick={() => { dismissHint(); setOpen(true); }} className="font-semibold text-primary">
+            Chat with AI
+          </button>
+          <button type="button" aria-label="Dismiss" onClick={dismissHint} className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted">
+            <X className="size-3.5" />
+          </button>
+          <span className="absolute -bottom-1.5 right-6 size-3 rotate-45 bg-background ring-1 ring-border [clip-path:polygon(100%_0,100%_100%,0_100%)]" aria-hidden />
+        </div>
+      )}
       <Button
         size="icon-lg"
         className="ml-auto size-14 rounded-full shadow-lg transition-transform hover:scale-105"
         aria-label={open ? "Close AI assistant" : "Open AI assistant"}
         aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          dismissHint();
+          setOpen((current) => !current);
+        }}
       >
-        {open ? <X className="size-6" /> : <MessageCircle className="size-6" />}
+        {open ? <X className="size-6" /> : <Bot className="size-7" />}
       </Button>
     </div>
   );

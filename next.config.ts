@@ -17,7 +17,17 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // No CORS headers are set: the API is same-origin only.
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // The service worker must never be cached by the browser/CDN, so updates reach users.
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
+    ];
   },
   turbopack: {
     rules: {

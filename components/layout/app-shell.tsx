@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, HandHeart, MapPin, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star } from "lucide-react";
+import { Bell, HandHeart, MapPin, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppeal, usePendingReview } from "@/lib/api/hooks";
+import { clearOfflineData } from "@/lib/pwa";
 import type { ProfileDTO } from "@/lib/schemas/profile";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -101,6 +102,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
   const RoleIcon = user.role === "GIVER" ? HandHeart : Soup;
 
   async function logout() {
+    await clearOfflineData();
     await createSupabaseBrowserClient().auth.signOut();
     qc.clear();
     router.replace("/login");
@@ -124,7 +126,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
         <Link href="/" className="mb-3 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted">
           <Home className="size-5" aria-hidden /> Public feed
         </Link>
-        <div className="rounded-2xl border bg-surface p-3">
+        <Link href="/dashboard/profile" aria-current={pathname.startsWith("/dashboard/profile") ? "page" : undefined} aria-label="Profile and settings" className={cn("block rounded-2xl border bg-surface p-3 transition-colors hover:border-primary/50", pathname.startsWith("/dashboard/profile") && "border-primary ring-1 ring-primary")}>
           <div className="flex items-center gap-2.5">
             <Avatar name={user.name} kind={user.giverKind ?? user.takerKind} />
             <div className="min-w-0">
@@ -135,7 +137,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
             </div>
           </div>
           {user.role === "GIVER" && <p className="mt-2 text-xs tabular text-muted-foreground">{user.points} points</p>}
-        </div>
+        </Link>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
@@ -155,6 +157,9 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
                   <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="gap-2">
+                  <UserRound className="size-4" aria-hidden /> Profile &amp; settings
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} className="gap-2">
                   <LogOut className="size-4" aria-hidden /> Log out
                 </DropdownMenuItem>

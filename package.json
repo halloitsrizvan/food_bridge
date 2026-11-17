@@ -33,6 +33,8 @@
     "cloudinary": "^2.11.0",
     "clsx": "^2.1.1",
     "framer-motion": "^14.14.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.73.0",

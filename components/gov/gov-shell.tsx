@@ -1,13 +1,14 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/components/layout/logo";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { clearOfflineData } from "@/lib/pwa";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ const NAV = [
   { href: "/gov/users", label: "Users", icon: Users },
   { href: "/gov/complaints", label: "Complaints", icon: MessageSquareWarning },
   { href: "/gov/config", label: "Config", icon: Settings2 },
+  { href: "/gov/profile", label: "Profile", icon: UserRound },
 ];
 
 export function GovShell({ user, children }: { user: { id: string; name: string; email: string }; children: React.ReactNode }) {
@@ -48,7 +50,7 @@ export function GovShell({ user, children }: { user: { id: string; name: string;
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
             <NotificationBell userId={user.id} basePath="/gov" />
-            <Button variant="ghost" className="h-11 gap-2 rounded-xl" onClick={async () => { await createSupabaseBrowserClient().auth.signOut(); qc.clear(); router.replace("/login"); router.refresh(); }}>
+            <Button variant="ghost" className="h-11 gap-2 rounded-xl" onClick={async () => { await clearOfflineData(); await createSupabaseBrowserClient().auth.signOut(); qc.clear(); router.replace("/login"); router.refresh(); }}>
               <LogOut className="size-4" aria-hidden /> <span className="hidden sm:inline">Log out</span>
             </Button>
           </div>
