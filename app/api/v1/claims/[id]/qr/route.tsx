@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import QRCode from "qrcode";
 import { z } from "zod";
+import { LOGO_DATA_URL } from "@/lib/brand";
 import { handoverQrUrl } from "@/lib/handover-qr";
 import { AppError } from "@/server/lib/errors";
 import { otpSecret } from "@/server/lib/otp-secret";
@@ -29,12 +30,8 @@ export const GET = route({ auth: ["GIVER"] }, async ({ user, params, req }) => {
         {/* header band */}
         <div style={{ display: "flex", flexDirection: "column", padding: "56px 64px 120px", background: "linear-gradient(135deg,#032724 0%,#066a62 50%,#27b3a3 100%)", color: "white" }}>
           <div style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ display: "flex", width: 64, height: 64, borderRadius: 999, background: "#088178", border: "3px solid rgba(255,255,255,0.35)", alignItems: "center", justifyContent: "center", marginRight: 18 }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 13h18a9 9 0 0 1-18 0z" />
-                <path d="M8 9c0-2 1.5-2.5 1.5-4.5M13 9c0-2 1.5-2.5 1.5-4.5" stroke="#F2A33A" />
-              </svg>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={LOGO_DATA_URL} width={64} height={64} alt="" style={{ borderRadius: 999, marginRight: 18, border: "3px solid rgba(255,255,255,0.45)" }} />
             <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: -1 }}>FoodBridge</div>
             <div style={{ marginLeft: "auto", display: "flex", padding: "10px 22px", borderRadius: 999, background: "rgba(255,255,255,0.16)", fontSize: 24, fontWeight: 600 }}>Government verified</div>
           </div>
