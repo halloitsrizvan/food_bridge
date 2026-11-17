@@ -4,7 +4,7 @@ import { Logo } from "@/components/layout/logo";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export const metadata = { title: "Offline" };
+export const metadata = { title: "Offline", robots: { index: false, follow: false } };
 
 // Precached by the service worker and shown when a page was never saved and there is no connection.
 export default function OfflinePage() {

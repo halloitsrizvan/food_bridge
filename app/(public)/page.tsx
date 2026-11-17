@@ -1,5 +1,6 @@
 import { LocationBootstrap } from "@/components/landing/location-bootstrap";
 import { Hero } from "@/components/landing/hero";
+import { LandingJsonLd } from "@/components/landing/json-ld";
 import { LandingNav } from "@/components/landing/nav";
 import { LiveFeed } from "@/components/landing/live-feed";
 import { CtaBand, ExpiringDeals, ExploreCategories, Faq, Footer, HowItWorks, PromoBanners } from "@/components/landing/sections";
@@ -7,6 +8,7 @@ import { CtaBand, ExpiringDeals, ExploreCategories, Faq, Footer, HowItWorks, Pro
 export default function Home() {
   return (
     <>
+      <LandingJsonLd />
       <LocationBootstrap />
       <LandingNav />
       <main id="main">

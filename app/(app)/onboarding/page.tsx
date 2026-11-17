@@ -5,7 +5,7 @@ import { OnboardingWizard } from "@/components/onboarding/wizard";
 import { PageSkeleton } from "@/components/shared/states";
 import { getCurrentProfile } from "@/server/lib/auth";
 
-export const metadata = { title: "Set up your profile" };
+export const metadata = { title: "Set up your profile", robots: { index: false, follow: false } };
 
 async function Gate() {
   await connection(); // request-time only: session + DB

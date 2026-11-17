@@ -5,6 +5,8 @@ import { GovShell } from "@/components/gov/gov-shell";
 import { PageSkeleton } from "@/components/shared/states";
 import { getCurrentProfile } from "@/server/lib/auth";
 
+export const metadata = { robots: { index: false, follow: false } };
+
 async function Shell({ children }: { children: React.ReactNode }) {
   await connection(); // request-time only: session + DB
   const profile = await getCurrentProfile();

@@ -6,6 +6,8 @@ import { PageSkeleton } from "@/components/shared/states";
 import { getCurrentProfile } from "@/server/lib/auth";
 import { profileService } from "@/server/services/profile.service";
 
+export const metadata = { robots: { index: false, follow: false } };
+
 // Reads the session (request-time data), so it streams in behind Suspense.
 async function Shell({ children }: { children: React.ReactNode }) {
   await connection(); // request-time only: session + DB

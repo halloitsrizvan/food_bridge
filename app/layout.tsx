@@ -3,6 +3,7 @@ import { DM_Sans, Bricolage_Grotesque, Geist_Mono, Atkinson_Hyperlegible, Noto_S
 import { Providers } from "@/components/layout/providers";
 import { PwaRegister } from "@/components/layout/pwa-register";
 import { BOOT_SCRIPT } from "@/lib/boot-scripts";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 import { FoodBridgeChat } from "@/components/chat/foodbridge-chat";
 import "./globals.css";
 
@@ -16,10 +17,26 @@ const notoHi = Noto_Sans_Devanagari({ variable: "--font-noto-hi", subsets: ["dev
 const readable = Atkinson_Hyperlegible({ variable: "--font-atkinson", subsets: ["latin"], weight: ["400", "700"], display: "swap", preload: false });
 
 export const metadata: Metadata = {
-  title: { default: "FoodBridge: surplus food finds a plate", template: "%s | FoodBridge" },
-  description: "A government-run network matching surplus food with people who need it, before it spoils.",
-  applicationName: "FoodBridge",
-  appleWebApp: { capable: true, title: "FoodBridge", statusBarStyle: "default" },
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME }],
+  category: "food",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    locale: "en_IN",
+  },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
+  formatDetection: { telephone: false },
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
