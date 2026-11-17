@@ -219,20 +219,56 @@ export function TopGivers() {
   );
 }
 
+/** Flat illustration for the FAQ: a bowl of food, steam and a question bubble, in the site's teal and saffron. */
+function FaqArt({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 400 400" className={className} fill="none" aria-hidden>
+      <circle cx="200" cy="205" r="170" className="fill-primary/10" />
+      <circle cx="200" cy="205" r="170" className="stroke-primary/30" strokeWidth="2" strokeDasharray="3 9" strokeLinecap="round" />
+      {/* steam */}
+      <path d="M160 150c-14-18 14-30 0-52M200 140c-14-18 14-30 0-52M240 150c-14-18 14-30 0-52" className="stroke-primary/60" strokeWidth="6" strokeLinecap="round" />
+      {/* food mound */}
+      <path d="M96 232c6-52 50-84 104-84s98 32 104 84z" className="fill-saffron" />
+      <path d="M96 232c6-52 50-84 104-84s98 32 104 84" className="stroke-[#b7791f]" strokeWidth="4" strokeLinecap="round" />
+      <circle cx="160" cy="196" r="6" className="fill-white/70" />
+      <circle cx="205" cy="180" r="6" className="fill-white/70" />
+      <circle cx="240" cy="206" r="6" className="fill-white/70" />
+      <circle cx="132" cy="218" r="5" className="fill-white/70" />
+      <circle cx="270" cy="224" r="5" className="fill-white/70" />
+      {/* bowl */}
+      <path d="M78 232h244c0 62-52 104-122 104S78 294 78 232z" className="fill-primary" />
+      <path d="M78 232h244" className="stroke-deep" strokeWidth="5" strokeLinecap="round" />
+      <path d="M120 258c10 28 38 46 80 46" className="stroke-white/35" strokeWidth="6" strokeLinecap="round" />
+      <rect x="150" y="332" width="100" height="14" rx="7" className="fill-deep" />
+      {/* leaves */}
+      <path d="M318 300c26-4 40-22 40-44-26 2-42 18-40 44z" className="fill-primary/70" />
+      <path d="M318 300c8-14 18-26 34-38" className="stroke-background" strokeWidth="3" strokeLinecap="round" />
+      <path d="M72 304c-24-4-38-20-36-42 24 2 40 16 36 42z" className="fill-primary/50" />
+      {/* question bubble */}
+      <path d="M262 52h86a16 16 0 0 1 16 16v54a16 16 0 0 1-16 16h-40l-22 22v-22h-24a16 16 0 0 1-16-16V68a16 16 0 0 1 16-16z" className="fill-background stroke-primary" strokeWidth="4" strokeLinejoin="round" />
+      <path d="M290 84c0-12 10-18 20-18s20 6 20 18c0 14-20 14-20 28" className="stroke-primary" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="310" cy="128" r="4.5" className="fill-primary" />
+    </svg>
+  );
+}
+
 export function Faq() {
   const t = useT();
   return (
-    <section id="faq" className="mx-auto max-w-3xl scroll-mt-32 px-4 py-14 sm:px-8">
+    <section id="faq" className="mx-auto max-w-6xl scroll-mt-32 px-2 py-14 sm:px-3">
       <h2 className="mb-6 font-display text-2xl font-semibold sm:text-4xl">{t.faq.title}</h2>
-      <div className="divide-y rounded-[20px] border bg-background">
-        {t.faq.items.map(({ q, a }) => (
-          <details key={q} className="group px-5 py-4">
-            <summary className="flex min-h-8 cursor-pointer list-none items-center justify-between gap-3 font-medium [&::-webkit-details-marker]:hidden">
-              {q}<Plus className="size-4 shrink-0 transition-transform group-open:rotate-45" aria-hidden />
-            </summary>
-            <p className="mt-2 text-sm text-muted-foreground">{a}</p>
-          </details>
-        ))}
+      <div className="grid items-center gap-8 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:gap-10">
+        <FaqArt className="mx-auto w-48 sm:w-60 md:w-full md:max-w-sm" />
+        <div className="divide-y rounded-[20px] border bg-background">
+          {t.faq.items.map(({ q, a }) => (
+            <details key={q} className="group px-5 py-4">
+              <summary className="flex min-h-8 cursor-pointer list-none items-center justify-between gap-3 font-medium [&::-webkit-details-marker]:hidden">
+                {q}<Plus className="size-4 shrink-0 transition-transform group-open:rotate-45" aria-hidden />
+              </summary>
+              <p className="mt-2 text-sm text-muted-foreground">{a}</p>
+            </details>
+          ))}
+        </div>
       </div>
     </section>
   );
