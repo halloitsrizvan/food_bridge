@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, HandHeart, MapPin, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star, UserRound } from "lucide-react";
+import { Bell, HandHeart, MessageSquare, MapPin, Home, Inbox, LayoutDashboard, LogOut, PlusCircle, ShieldAlert, Soup, Star, UserRound } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useAppeal, usePendingReview } from "@/lib/api/hooks";
+import { useAppeal, useChatInbox, usePendingReview } from "@/lib/api/hooks";
 import { useT } from "@/lib/i18n";
 import { clearOfflineData } from "@/lib/pwa";
 import type { Dict } from "@/lib/i18n/en";
@@ -101,6 +101,7 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
   const router = useRouter();
   const qc = useQueryClient();
   const t = useT();
+  const unreadChats = useChatInbox().data?.totalUnread ?? 0;
   const items = navFor(user.role, t);
   const active = (href: string) => (href === "/dashboard" ? pathname === href : pathname.startsWith(href));
   const RoleIcon = user.role === "GIVER" ? HandHeart : Soup;
@@ -152,6 +153,14 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
           <div className="ml-auto flex items-center gap-1">
             <LanguageSwitcher />
             <ThemeToggle />
+            <Link href="/dashboard/chats" aria-label={t.msgs.open} aria-current={pathname.startsWith("/dashboard/chats") ? "page" : undefined} className={cn("relative grid size-11 place-items-center rounded-xl hover:bg-muted", pathname.startsWith("/dashboard/chats") && "bg-muted")}>
+              <MessageSquare className="size-5" aria-hidden />
+              {unreadChats > 0 && (
+                <span className="absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-full bg-clay px-1 text-[11px] font-bold leading-5 text-white" aria-hidden>
+                  {unreadChats > 9 ? "9+" : unreadChats}
+                </span>
+              )}
+            </Link>
             <NotificationBell userId={user.id} />
             <DropdownMenu>
               <DropdownMenuTrigger className="grid size-11 place-items-center rounded-xl hover:bg-muted" aria-label={t.shell.accountMenu}>

@@ -168,13 +168,13 @@ export function ProfileSettings() {
               </p>
               <span className={cn("mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold", me.status === "ACTIVE" ? "bg-primary/10 text-primary" : "bg-clay/15 text-clay")}>{me.status === "ACTIVE" ? t.profile.statusActive : me.status === "SUSPENDED" ? t.profile.statusSuspended : t.profile.statusAppealing}</span>
             </div>
-            {!editing && (
+            {!editing && me.role !== "GOV" && (
               <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="h-9 gap-1.5 rounded-xl">
                 <Pencil className="size-3.5" aria-hidden /> {t.common.edit}
               </Button>
             )}
           </div>
-          {editing && <EditDetails name={me.name} phone={me.phone} onDone={() => setEditing(false)} />}
+          {editing && me.role !== "GOV" && <EditDetails name={me.name} phone={me.phone} onDone={() => setEditing(false)} />}
           <dl className="mt-5 grid gap-4 sm:grid-cols-2">
             <Row label={t.profile.email}>{me.email}</Row>
             <Row label={t.profile.phone}>{me.phone}</Row>

@@ -1,6 +1,8 @@
 "use client";
 // One hook per endpoint: query key + api<T>() + shared types.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { GrantTaxReduction, TaxReductionRow } from "@/lib/schemas/tax";
+import type { ChatInbox, ChatMessage, ChatThreadView } from "@/lib/schemas/message";
 import type { ClaimView } from "@/lib/schemas/claim";
 import type { CreateNeed, CreateOffer, MatchInfo, NeedDTO, OfferWithMatch, PublicOffer } from "@/lib/schemas/food";
 import type { ProfileDTO } from "@/lib/schemas/profile";
@@ -143,3 +145,23 @@ const govKeys = [["gov-users"], ["gov-complaints"], ["gov-appeals"], ["gov-overv
 export const useSetUserStatus = () => useAct((v: { id: string; status: "ACTIVE" | "SUSPENDED" }) => api(`/api/v1/gov/users/${v.id}`, { method: "PATCH", body: { status: v.status } }), govKeys);
 export const useDecideAppeal = () => useAct((v: { id: string; decision: "APPROVED" | "REJECTED" }) => api(`/api/v1/gov/appeals/${v.id}/decide`, { method: "POST", body: { decision: v.decision } }), govKeys);
 export const useSaveConfig = () => useAct((patch: Record<string, unknown>) => api("/api/v1/gov/config", { method: "PATCH", body: patch }), govKeys);
+
+
+// ---- handover chat
+export const useChatInbox = () => useQuery({ queryKey: ["chat-inbox"], queryFn: () => api<ChatInbox>("/api/v1/me/chats"), refetchInterval: 12_000 });
+export const useChatThread = (claimId: string) =>
+  useQuery({ queryKey: ["chat-thread", claimId], queryFn: () => api<ChatThreadView>(`/api/v1/claims/${claimId}/messages`), refetchInterval: 3_000 });
+export function useSendMessage(claimId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: string) => api<ChatMessage>(`/api/v1/claims/${claimId}/messages`, { method: "POST", body: { body } }),
+    onSuccess: (m) => {
+      qc.setQueryData<ChatThreadView>(["chat-thread", claimId], (t) => (t ? { ...t, messages: [...t.messages, m] } : t));
+      qc.invalidateQueries({ queryKey: ["chat-inbox"] });
+    },
+  });
+}
+
+// ---- government tax reductions
+export const useTaxReductions = () => useQuery({ queryKey: ["gov-tax"], queryFn: () => api<TaxReductionRow[]>("/api/v1/gov/tax-reductions") });
+export const useGrantTax = () => useAct((b: GrantTaxReduction) => api<TaxReductionRow>("/api/v1/gov/tax-reductions", { method: "POST", body: b }), [["gov-tax"]]);

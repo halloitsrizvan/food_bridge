@@ -127,6 +127,9 @@ model Profile {
   appeals        Appeal[]       @relation("AppealAccount")
   ledger         PointLedger[]
   notifications  Notification[]
+  sentMessages   ClaimMessage[] @relation("MessageSender")
+  taxReductions  TaxReduction[] @relation("TaxGiver")
+  taxGranted     TaxReduction[] @relation("TaxGrantedBy")
 
   @@index([role, status])
   @@index([lat, lng])
@@ -211,6 +214,7 @@ model Claim {
   reviews    Review[]
   complaints Complaint[]
   ledger     PointLedger[]
+  messages   ClaimMessage[]
 
   @@index([status, holdUntil])
   @@index([offerId, status])
@@ -283,6 +287,42 @@ model PointLedger {
 
   @@index([accountId, createdAt])
   @@map("point_ledger")
+}
+
+/// Handover chat: one thread per claim, only the giver and the receiver of that claim can read or write.
+model ClaimMessage {
+  id        String    @id @default(uuid()) @db.Uuid
+  claimId   String    @map("claim_id") @db.Uuid
+  senderId  String    @map("sender_id") @db.Uuid
+  body      String
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  claim  Claim   @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  sender Profile @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([claimId, createdAt])
+  @@index([claimId, senderId, readAt])
+  @@map("claim_messages")
+}
+
+/// A tax reduction the government grants to a giver. Granting it also alerts the giver.
+model TaxReduction {
+  id          String   @id @default(uuid()) @db.Uuid
+  giverId     String   @map("giver_id") @db.Uuid
+  taxType     String   @map("tax_type")
+  percent     Int
+  reason      String
+  validUntil  DateTime @map("valid_until") @db.Date
+  grantedById String   @map("granted_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  giver     Profile @relation("TaxGiver", fields: [giverId], references: [id])
+  grantedBy Profile @relation("TaxGrantedBy", fields: [grantedById], references: [id])
+
+  @@index([giverId, createdAt])
+  @@index([createdAt])
+  @@map("tax_reductions")
 }
 
 model Notification {

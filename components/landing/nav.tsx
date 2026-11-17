@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Landmark, LayoutGrid, Menu, Search, X } from "lucide-react";
+import { ArrowUpRight, Landmark, LayoutGrid, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/logo";
@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useMe } from "@/lib/api/hooks";
 import { useT } from "@/lib/i18n";
+import { SearchBox } from "./search-box";
 import { requestLocation, useLocation } from "@/lib/use-location";
 import { cn } from "@/lib/utils";
 
@@ -103,23 +104,13 @@ export function LandingNav() {
               </a>
             ))}
           </nav>
-          <form
-            role="search"
-            className={cn("relative hidden min-w-0 transition-all duration-300 md:block", scrolled ? "ml-auto w-48 lg:w-60" : "mx-auto max-w-xl flex-1")}
-            onSubmit={(e) => {
-              e.preventDefault();
-              searchFeed(q, true);
-            }}
-          >
-            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-            <input
-              aria-label={t.nav.searchLabel}
-              value={q}
-              onChange={(e) => onType(e.target.value)}
-              placeholder={t.nav.searchPlaceholder}
-              className={cn("w-full rounded-full border bg-secondary pl-11 pr-4 text-sm outline-none transition-[height] duration-300 placeholder:text-muted-foreground focus:border-primary focus:bg-background", scrolled ? "h-10" : "h-11")}
-            />
-          </form>
+          <SearchBox
+            value={q}
+            onChange={onType}
+            onSubmit={(v) => searchFeed(v, true)}
+            className={cn("hidden min-w-0 transition-all duration-300 md:block", scrolled ? "ml-auto w-48 lg:w-60" : "mx-auto max-w-xl flex-1")}
+            inputClassName={cn("w-full rounded-full border bg-secondary pl-11 pr-4 text-sm outline-none transition-[height] duration-300 placeholder:text-muted-foreground focus:border-primary focus:bg-background", scrolled ? "h-10" : "h-11")}
+          />
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 md:ml-0">
             <LanguageSwitcher />
             <ThemeToggle />
@@ -140,25 +131,15 @@ export function LandingNav() {
           </div>
         </div>
       </div>
-      <form
-        role="search"
-        className="relative border-b bg-background px-4 py-2 md:hidden"
-        onSubmit={(e) => {
-          e.preventDefault();
-          searchFeed(q, true);
-        }}
-      >
-        <Search className="pointer-events-none absolute left-8 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-        <input
-          aria-label={t.nav.searchLabel}
-          type="search"
-          enterKeyHint="search"
+      <div className="relative border-b bg-background px-4 py-2 md:hidden">
+        <SearchBox
           value={q}
-          onChange={(e) => onType(e.target.value)}
-          placeholder={t.nav.searchPlaceholder}
-          className="h-11 w-full rounded-full border bg-secondary pl-11 pr-4 text-base outline-none placeholder:text-muted-foreground focus:border-primary focus:bg-background"
+          onChange={onType}
+          onSubmit={(v) => searchFeed(v, true)}
+          iconClassName="left-4"
+          inputClassName="h-11 w-full rounded-full border bg-secondary pl-11 pr-4 text-base outline-none placeholder:text-muted-foreground focus:border-primary focus:bg-background"
         />
-      </form>
+      </div>
       <div className={cn("hidden grid-rows-[1fr] transition-[grid-template-rows] duration-300 md:grid", scrolled && "grid-rows-[0fr]")} inert={scrolled}>
         <div className="min-h-0 overflow-hidden border-b">
         <nav className="mx-auto flex h-12 max-w-[1680px] items-center gap-6 px-4 text-sm font-medium sm:px-8" aria-label="Page sections">

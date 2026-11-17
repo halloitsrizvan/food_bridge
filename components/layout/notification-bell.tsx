@@ -29,6 +29,8 @@ export function NotificationBell({ userId, basePath = "/dashboard" }: { userId: 
         qc.invalidateQueries({ queryKey: ["notifications"] });
         qc.invalidateQueries({ queryKey: ["my-claims"] });
         qc.invalidateQueries({ queryKey: ["claim"] });
+        qc.invalidateQueries({ queryKey: ["chat-inbox"] });
+        qc.invalidateQueries({ queryKey: ["chat-thread"] });
       })
       .subscribe();
     return () => {

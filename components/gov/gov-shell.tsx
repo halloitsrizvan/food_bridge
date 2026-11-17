@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, UserRound, Users } from "lucide-react";
+import { BadgePercent, LayoutDashboard, LogOut, Map, MessageSquareWarning, Settings2, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/components/layout/logo";
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/gov/map", key: "liveMap" as const, icon: Map },
   { href: "/gov/users", key: "users" as const, icon: Users },
   { href: "/gov/complaints", key: "complaints" as const, icon: MessageSquareWarning },
+  { href: "/gov/tax", key: "tax" as const, icon: BadgePercent },
   { href: "/gov/config", key: "config" as const, icon: Settings2 },
   { href: "/gov/profile", key: "profileShort" as const, icon: UserRound },
 ];

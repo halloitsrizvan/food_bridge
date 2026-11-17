@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, Download, ExternalLink, Flag, MapPin, MessageCircle, Phone, Share2, Star } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Flag, MapPin, MessageCircle, MessageSquare, Phone, Share2, Star } from "lucide-react";
 import Link from "next/link";
+import { useT } from "@/lib/i18n";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { MapView } from "@/components/map/map-view";
@@ -158,6 +159,7 @@ function Celebration({ claim, open, onClose }: { claim: ClaimView; open: boolean
 }
 
 export function ClaimScreen({ id, initialCode }: { id: string; initialCode?: string }) {
+  const t = useT();
   const { data: c, isPending, isError, error, refetch } = useClaim(id);
   const accept = useAcceptClaim();
   const decline = useDeclineClaim();
@@ -205,6 +207,9 @@ export function ClaimScreen({ id, initialCode }: { id: string; initialCode?: str
             <span className="text-sm text-muted-foreground">{c.offer.quantityMeals} meals</span>
           </div>
         </div>
+        <Link href={`/dashboard/chats/${c.id}`} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+          <MessageSquare className="size-4" aria-hidden /> {t.msgs.chat}
+        </Link>
       </header>
 
       <div className="rounded-[20px] border bg-surface p-4 shadow-soft sm:p-5">
