@@ -121,9 +121,12 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
           <Logo />
         </Link>
         <nav className="flex flex-1 flex-col gap-1" aria-label="Main">
-          {items.map((n) => (
+          {[...items, { href: "/dashboard/chats", label: t.msgs.title, icon: MessageSquare }].map((n) => (
             <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors", active(n.href) ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
               <n.icon className="size-5" aria-hidden /> {n.label}
+              {n.href === "/dashboard/chats" && unreadChats > 0 && (
+                <span className="ml-auto grid min-w-5 place-items-center rounded-full bg-clay px-1.5 text-[11px] font-bold leading-5 text-white">{unreadChats > 9 ? "9+" : unreadChats}</span>
+              )}
             </Link>
           ))}
         </nav>
