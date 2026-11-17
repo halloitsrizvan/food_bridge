@@ -7,11 +7,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { CategoryChip, DietBadge } from "@/components/shared/badges";
 import { CountdownRing } from "@/components/shared/countdown-ring";
 import { useMe, useOffers } from "@/lib/api/hooks";
-import { t } from "@/lib/i18n/en";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { ImpactCounters } from "./counters";
 
 function FloatingCard() {
+  const t = useT();
   const reduce = useReducedMotion();
   const { data } = useOffers({ sort: "soonest", limit: 1 });
   const o = data?.items[0];
@@ -23,13 +24,13 @@ function FloatingCard() {
       className="absolute bottom-4 right-4 hidden w-[15.5rem] rounded-3xl bg-background p-3 text-foreground shadow-lift sm:bottom-6 sm:right-6 sm:block"
     >
       <div className="grid h-28 place-items-center rounded-2xl bg-secondary">
-        {o ? <CategoryChip category={o.category} className="size-14 rounded-2xl [&_svg]:size-7" /> : <span className="text-xs text-muted-foreground">Live posts appear here</span>}
+        {o ? <CategoryChip category={o.category} className="size-14 rounded-2xl [&_svg]:size-7" /> : <span className="text-xs text-muted-foreground">{t.hero.livePlaceholder}</span>}
       </div>
       {o ? (
         <div className="mt-2.5 flex items-center gap-2 px-1">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{o.title}</p>
-            <p className="text-xs text-muted-foreground">{o.quantityMeals} meals · {o.area}</p>
+            <p className="text-xs text-muted-foreground">{o.quantityMeals} {t.common.meals} · {o.area}</p>
             <DietBadge diet={o.diet} className="mt-1" />
           </div>
           <CountdownRing expiresAt={o.expiresAt} startAt={o.createdAt} size={48} />
@@ -40,6 +41,7 @@ function FloatingCard() {
 }
 
 export function Hero() {
+  const t = useT();
   const { data: me } = useMe();
   return (
     <section className="mx-auto max-w-[1680px] px-4 sm:px-8 pt-6">
@@ -53,17 +55,17 @@ export function Hero() {
             {/* <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/12 px-3.5 py-1.5 text-xs font-semibold ring-1 ring-white/25 backdrop-blur sm:text-sm">
               <Landmark className="size-4 text-saffron" aria-hidden /> Government of the people, for the people · Public food-security programme
             </p> */}
-            <h1 className="text-balance font-display text-4xl font-semibold leading-[1.05] sm:text-6xl">{t.landing.headline}</h1>
-            <p className="mt-4 max-w-md text-pretty text-sm text-white/85 sm:text-base">{t.landing.sub}</p>
+            <h1 className="text-balance font-display text-4xl font-semibold leading-[1.05] sm:text-6xl">{t.hero.headline}</h1>
+            <p className="mt-4 max-w-md text-pretty text-sm text-white/85 sm:text-base">{t.hero.sub}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href={me?.role === "GIVER" ? "/dashboard/post" : "/signup"} className={cn(buttonVariants(), "h-12 gap-2 bg-background pl-6 pr-2 text-base text-primary hover:bg-background/90")}>
-                {t.landing.ctaGive}
+                {t.hero.ctaGive}
                 <span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground">
                   <ArrowUpRight className="size-4" aria-hidden />
                 </span>
               </Link>
               <a href="#live" className={cn(buttonVariants({ variant: "outline" }), "h-12 border-white/40 bg-transparent px-6 text-base text-white hover:bg-white/10 hover:text-white")}>
-                {t.landing.ctaNeed}
+                {t.hero.ctaNeed}
               </a>
             </div>
           </div>

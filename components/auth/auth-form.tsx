@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiClientError } from "@/lib/api/client";
+import { useT } from "@/lib/i18n";
 import { LoginSchema, SignupSchema } from "@/lib/schemas/profile";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,6 @@ function strength(pw: string) {
   if (/\d/.test(pw) && /[^A-Za-z0-9]/.test(pw)) s++;
   return s; // 0..4
 }
-const STRENGTH = ["Too short", "Weak", "Okay", "Good", "Strong"];
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
@@ -44,6 +44,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 export function LoginForm({ onDone, compact }: { onDone?: () => void; compact?: boolean }) {
+  const t = useT();
   const router = useRouter();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -54,7 +55,7 @@ export function LoginForm({ onDone, compact }: { onDone?: () => void; compact?: 
     setBusy(true);
     const { error } = await createSupabaseBrowserClient().auth.signInWithPassword(v);
     setBusy(false);
-    if (error) return toast.error("Email or password is incorrect");
+    if (error) return toast.error(t.auth.badLogin);
     await qc.invalidateQueries({ queryKey: ["me"] });
     if (onDone) return onDone();
     router.replace(safeNext(new URLSearchParams(window.location.search).get("next")));
@@ -63,25 +64,25 @@ export function LoginForm({ onDone, compact }: { onDone?: () => void; compact?: 
 
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-4" noValidate>
-      <Field label="Email" error={errors.email?.message}>
+      <Field label={t.auth.email} error={errors.email?.message}>
         <Input type="email" autoComplete="email" className="h-11 rounded-xl" {...register("email")} aria-invalid={!!errors.email} />
       </Field>
-      <Field label="Password" error={errors.password?.message}>
+      <Field label={t.auth.password} error={errors.password?.message}>
         <div className="relative">
           <Input type={show ? "text" : "password"} autoComplete="current-password" className="h-11 rounded-xl pr-11" {...register("password")} aria-invalid={!!errors.password} />
-          <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
+          <button type="button" onClick={() => setShow((s) => !s)} aria-label={show ? t.auth.hidePw : t.auth.showPw} className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         </div>
       </Field>
       <Button type="submit" disabled={busy} className="h-11 w-full rounded-xl">
-        {busy ? "Signing in..." : "Log in"}
+        {busy ? t.auth.signingIn : t.auth.loginBtn}
       </Button>
       {!compact && (
         <p className="text-center text-sm text-muted-foreground">
-          New here?{" "}
+          {t.auth.newHere}{" "}
           <Link className="font-medium text-primary underline-offset-4 hover:underline" href="/signup">
-            Create an account
+            {t.auth.createAccount}
           </Link>
         </p>
       )}
@@ -89,12 +90,13 @@ export function LoginForm({ onDone, compact }: { onDone?: () => void; compact?: 
   );
 }
 
-const ROLES = [
-  { v: "GIVER" as const, icon: HandHeart, title: "I give food", sub: "Restaurant, caterer, home or event" },
-  { v: "TAKER" as const, icon: Soup, title: "I need food", sub: "Institution, charity or family" },
-];
 
 export function SignupForm() {
+  const t = useT();
+  const ROLES = [
+    { v: "GIVER" as const, icon: HandHeart, title: t.auth.giveFood, sub: t.auth.giveFoodSub },
+    { v: "TAKER" as const, icon: Soup, title: t.auth.needFood, sub: t.auth.needFoodSub },
+  ];
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [show, setShow] = useState(false);
@@ -111,12 +113,12 @@ export function SignupForm() {
     try {
       await api("/api/v1/auth/signup", { method: "POST", body: v });
       const { error } = await createSupabaseBrowserClient().auth.signInWithPassword({ email: v.email, password: v.password });
-      if (error) throw new Error("Account created, but sign-in failed. Please log in.");
-      toast.success("Welcome to FoodBridge");
+      if (error) throw new Error(t.auth.signedUpNoLogin);
+      toast.success(t.auth.welcome);
       router.replace("/onboarding");
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof ApiClientError || e instanceof Error ? e.message : "Could not sign up");
+      toast.error(e instanceof ApiClientError || e instanceof Error ? e.message : t.auth.signupFail);
       setBusy(false);
     }
   }
@@ -124,7 +126,7 @@ export function SignupForm() {
   return (
     <form onSubmit={handleSubmit(submit)} className="space-y-5" noValidate>
       <fieldset>
-        <legend className="mb-2 text-sm font-medium">I am joining as</legend>
+        <legend className="mb-2 text-sm font-medium">{t.auth.joiningAs}</legend>
         <div className="grid grid-cols-2 gap-3" role="radiogroup">
           {ROLES.map((r) => (
             <button
@@ -142,16 +144,16 @@ export function SignupForm() {
           ))}
         </div>
       </fieldset>
-      <Field label="Email" error={errors.email?.message}>
+      <Field label={t.auth.email} error={errors.email?.message}>
         <Input type="email" autoComplete="email" className="h-11 rounded-xl" {...register("email")} aria-invalid={!!errors.email} />
       </Field>
-      <Field label="Phone" error={errors.phone?.message}>
+      <Field label={t.auth.phone} error={errors.phone?.message}>
         <Input type="tel" autoComplete="tel" placeholder="+91 98470 12345" className="h-11 rounded-xl" {...register("phone")} aria-invalid={!!errors.phone} />
       </Field>
-      <Field label="Password" error={errors.password?.message}>
+      <Field label={t.auth.password} error={errors.password?.message}>
         <div className="relative">
           <Input type={show ? "text" : "password"} autoComplete="new-password" className="h-11 rounded-xl pr-11" {...register("password")} aria-invalid={!!errors.password} />
-          <button type="button" onClick={() => setShow((x) => !x)} aria-label={show ? "Hide password" : "Show password"} className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
+          <button type="button" onClick={() => setShow((x) => !x)} aria-label={show ? t.auth.hidePw : t.auth.showPw} className="absolute right-2 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground hover:bg-muted">
             {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
           </button>
         </div>
@@ -161,16 +163,16 @@ export function SignupForm() {
               <span key={i} className="h-1.5 flex-1 rounded-full transition-colors" style={{ background: i <= s ? (s >= 3 ? "var(--urgent-safe)" : s === 2 ? "var(--urgent-amber)" : "var(--urgent-orange)") : "var(--line)" }} />
             ))}
           </div>
-          <span className="w-16 text-right text-xs text-muted-foreground">{pw ? STRENGTH[s] : ""}</span>
+          <span className="w-16 text-right text-xs text-muted-foreground">{pw ? t.auth.strength[s] : ""}</span>
         </div>
       </Field>
       <Button type="submit" disabled={busy} className="h-11 w-full rounded-xl">
-        {busy ? "Creating account..." : "Create account"}
+        {busy ? t.auth.creating : t.auth.createBtn}
       </Button>
       <p className="text-center text-sm text-muted-foreground">
-        Already registered?{" "}
+        {t.auth.already}{" "}
         <Link className="font-medium text-primary underline-offset-4 hover:underline" href="/login">
-          Log in
+          {t.common.login}
         </Link>
       </p>
     </form>

@@ -11,22 +11,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppeal, usePendingReview } from "@/lib/api/hooks";
+import { useT } from "@/lib/i18n";
 import { clearOfflineData } from "@/lib/pwa";
+import type { Dict } from "@/lib/i18n/en";
 import type { ProfileDTO } from "@/lib/schemas/profile";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/shared/badges";
+import { LanguageSwitcher } from "./language-switcher";
 import { Logo } from "./logo";
 import { NotificationBell } from "./notification-bell";
 import { ThemeToggle } from "./theme-toggle";
 
 type Item = { href: string; label: string; icon: React.ComponentType<{ className?: string }> };
 
-function navFor(role: ProfileDTO["role"]): Item[] {
-  const base: Item[] = [{ href: "/dashboard", label: "Home", icon: LayoutDashboard }];
-  if (role === "GIVER") base.push({ href: "/dashboard/post", label: "Post food", icon: PlusCircle });
-  if (role === "TAKER") base.push({ href: "/dashboard/needs/new", label: "Post a need", icon: PlusCircle });
-  base.push({ href: "/dashboard/nearby", label: "Nearby", icon: MapPin }, { href: "/dashboard/claims", label: "Handovers", icon: Inbox }, { href: "/dashboard/notifications", label: "Alerts", icon: Bell });
+function navFor(role: ProfileDTO["role"], t: Dict): Item[] {
+  const base: Item[] = [{ href: "/dashboard", label: t.shell.home, icon: LayoutDashboard }];
+  if (role === "GIVER") base.push({ href: "/dashboard/post", label: t.shell.postFood, icon: PlusCircle });
+  if (role === "TAKER") base.push({ href: "/dashboard/needs/new", label: t.shell.postNeed, icon: PlusCircle });
+  base.push({ href: "/dashboard/nearby", label: t.shell.nearby, icon: MapPin }, { href: "/dashboard/claims", label: t.shell.handovers, icon: Inbox }, { href: "/dashboard/notifications", label: t.shell.alerts, icon: Bell });
   return base;
 }
 
@@ -97,7 +100,8 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
   const pathname = usePathname();
   const router = useRouter();
   const qc = useQueryClient();
-  const items = navFor(user.role);
+  const t = useT();
+  const items = navFor(user.role, t);
   const active = (href: string) => (href === "/dashboard" ? pathname === href : pathname.startsWith(href));
   const RoleIcon = user.role === "GIVER" ? HandHeart : Soup;
 
@@ -124,19 +128,19 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
         </nav>
         {/* only the public feed link sits at the bottom, right above the profile card */}
         <Link href="/" className="mb-3 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted">
-          <Home className="size-5" aria-hidden /> Public feed
+          <Home className="size-5" aria-hidden /> {t.shell.publicFeed}
         </Link>
-        <Link href="/dashboard/profile" aria-current={pathname.startsWith("/dashboard/profile") ? "page" : undefined} aria-label="Profile and settings" className={cn("block rounded-2xl border bg-surface p-3 transition-colors hover:border-primary/50", pathname.startsWith("/dashboard/profile") && "border-primary ring-1 ring-primary")}>
+        <Link href="/dashboard/profile" aria-current={pathname.startsWith("/dashboard/profile") ? "page" : undefined} aria-label={t.shell.profile} className={cn("block rounded-2xl border bg-surface p-3 transition-colors hover:border-primary/50", pathname.startsWith("/dashboard/profile") && "border-primary ring-1 ring-primary")}>
           <div className="flex items-center gap-2.5">
             <Avatar name={user.name} kind={user.giverKind ?? user.takerKind} />
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{user.name}</p>
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                <RoleIcon className="size-3" aria-hidden /> {user.role === "GIVER" ? "Giver" : "Receiver"}
+                <RoleIcon className="size-3" aria-hidden /> {user.role === "GIVER" ? t.shell.giver : t.shell.receiver}
               </p>
             </div>
           </div>
-          {user.role === "GIVER" && <p className="mt-2 text-xs tabular text-muted-foreground">{user.points} points</p>}
+          {user.role === "GIVER" && <p className="mt-2 text-xs tabular text-muted-foreground">{user.points} {t.shell.points}</p>}
         </Link>
       </aside>
 
@@ -146,10 +150,11 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
             <Logo />
           </Link>
           <div className="ml-auto flex items-center gap-1">
+            <LanguageSwitcher />
             <ThemeToggle />
             <NotificationBell userId={user.id} />
             <DropdownMenu>
-              <DropdownMenuTrigger className="grid size-11 place-items-center rounded-xl hover:bg-muted" aria-label="Account menu">
+              <DropdownMenuTrigger className="grid size-11 place-items-center rounded-xl hover:bg-muted" aria-label={t.shell.accountMenu}>
                 <Avatar name={user.name} kind={user.giverKind ?? user.takerKind} size={32} />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-60">
@@ -158,10 +163,10 @@ export function AppShell({ user, children }: { user: ProfileDTO; children: React
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => router.push("/dashboard/profile")} className="gap-2">
-                  <UserRound className="size-4" aria-hidden /> Profile &amp; settings
+                  <UserRound className="size-4" aria-hidden /> {t.shell.profile}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} className="gap-2">
-                  <LogOut className="size-4" aria-hidden /> Log out
+                  <LogOut className="size-4" aria-hidden /> {t.shell.logout}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

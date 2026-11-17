@@ -6,16 +6,13 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useMe } from "@/lib/api/hooks";
+import { useT } from "@/lib/i18n";
 import { requestLocation, useLocation } from "@/lib/use-location";
 import { cn } from "@/lib/utils";
 
-const LINKS = [
-  { href: "#live", label: "Browse food" },
-  { href: "#deals", label: "Expiring soon" },
-  { href: "#how", label: "How it works" },
-  { href: "#faq", label: "FAQ" },
-];
+const LINK_HREFS = ["#live", "#deals", "#how", "#faq"] as const;
 
 export function setFeedFilter(detail: { q?: string; category?: string; diet?: string }) {
   window.dispatchEvent(new CustomEvent("fb:filter", { detail }));
@@ -29,6 +26,13 @@ function searchFeed(q: string, scroll: boolean) {
 }
 
 export function LandingNav() {
+  const t = useT();
+  const LINKS = [
+    { href: LINK_HREFS[0], label: t.nav.browse },
+    { href: LINK_HREFS[1], label: t.nav.expiring },
+    { href: LINK_HREFS[2], label: t.nav.how },
+    { href: LINK_HREFS[3], label: t.nav.faq },
+  ];
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const onType = (v: string) => {
@@ -50,7 +54,7 @@ export function LandingNav() {
     };
   }, []);
   const dash = me ? (me.role === "GOV" ? "/gov" : "/dashboard") : null;
-  const cta = me ? { href: me.role === "GIVER" ? "/dashboard/post" : dash!, label: me.role === "GIVER" ? "Share food" : "Dashboard" } : { href: "/signup", label: "Share food" };
+  const cta = me ? { href: me.role === "GIVER" ? "/dashboard/post" : dash!, label: me.role === "GIVER" ? t.common.shareFood : t.common.dashboard } : { href: "/signup", label: t.common.shareFood };
 
   return (
     <header className="sticky top-0 z-50 bg-background">
@@ -59,8 +63,8 @@ export function LandingNav() {
           <div className="flex items-center justify-center gap-2 bg-[#032724] px-3 py-1.5 text-[11px] text-white/90 sm:text-xs">
             <Landmark className="size-3.5 shrink-0 text-saffron" aria-hidden />
             <span className="truncate">
-              <b className="font-semibold text-white">A Government initiative</b> for public food-surplus management
-              <span className="hidden sm:inline"> · Official Government Service</span>
+              <b className="font-semibold text-white">{t.nav.govInitiative}</b>{t.nav.govInitiativeRest}
+              <span className="hidden sm:inline">{t.nav.officialService}</span>
             </span>
           </div>
         </div>
@@ -68,22 +72,22 @@ export function LandingNav() {
       <div className={cn("grid grid-rows-[1fr] transition-[grid-template-rows] duration-300", scrolled && "max-md:grid-rows-[0fr]")}>
         <div className={cn("min-h-0 overflow-hidden", scrolled && "max-md:invisible")}>
         <div className="bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-[13px]">
-          Surplus food is matched and handed over within <b className="text-saffron">20 minutes</b>{" "}
+          {t.nav.matchedWithin} <b className="text-saffron">{t.nav.minutes}</b>{" "}
           {loc.place ? (
             <>
-              near <b>{loc.place}</b>
+              {t.nav.near} <b>{loc.place}</b>
             </>
           ) : loc.status === "asking" ? (
-            "near you (locating...)"
+            t.nav.nearYou
           ) : (
             <>
-              in your area ·{" "}
+              {t.nav.inYourArea}{" "}
               <button type="button" onClick={() => requestLocation(true)} className="font-semibold underline underline-offset-2">
-                use my location
+                {t.nav.useMyLocation}
               </button>
             </>
           )}{" "}
-          · <b>Free, government run</b>
+          · <b>{t.nav.freeGov}</b>
         </div>
         </div>
       </div>
@@ -109,18 +113,19 @@ export function LandingNav() {
           >
             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
             <input
-              aria-label="Search food"
+              aria-label={t.nav.searchLabel}
               value={q}
               onChange={(e) => onType(e.target.value)}
-              placeholder="Search biryani, sadhya, bread..."
+              placeholder={t.nav.searchPlaceholder}
               className={cn("w-full rounded-full border bg-secondary pl-11 pr-4 text-sm outline-none transition-[height] duration-300 placeholder:text-muted-foreground focus:border-primary focus:bg-background", scrolled ? "h-10" : "h-11")}
             />
           </form>
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 md:ml-0">
+            <LanguageSwitcher />
             <ThemeToggle />
             {!me && (
               <Link href="/login" className={cn(buttonVariants({ variant: "ghost" }), "hidden h-10 px-4 sm:inline-flex")}>
-                Log in
+                {t.common.login}
               </Link>
             )}
             <Link href={cta.href} className={cn(buttonVariants(), "h-10 gap-1.5 pl-4 pr-1.5 text-[13px] sm:pl-5 sm:pr-2 sm:text-sm")}>
@@ -129,7 +134,7 @@ export function LandingNav() {
                 <ArrowUpRight className="size-3.5" aria-hidden />
               </span>
             </Link>
-            <button type="button" className={cn("grid size-11 place-items-center rounded-full hover:bg-muted", scrolled ? "xl:hidden" : "md:hidden")} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((v) => !v)}>
+            <button type="button" className={cn("grid size-11 place-items-center rounded-full hover:bg-muted", scrolled ? "xl:hidden" : "md:hidden")} aria-label={open ? t.nav.closeMenu : t.nav.openMenu} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen((v) => !v)}>
               {open ? <X className="size-5" /> : <Menu className="size-5" />}
             </button>
           </div>
@@ -145,12 +150,12 @@ export function LandingNav() {
       >
         <Search className="pointer-events-none absolute left-8 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
         <input
-          aria-label="Search food"
+          aria-label={t.nav.searchLabel}
           type="search"
           enterKeyHint="search"
           value={q}
           onChange={(e) => onType(e.target.value)}
-          placeholder="Search biryani, sadhya, bread..."
+          placeholder={t.nav.searchPlaceholder}
           className="h-11 w-full rounded-full border bg-secondary pl-11 pr-4 text-base outline-none placeholder:text-muted-foreground focus:border-primary focus:bg-background"
         />
       </form>
@@ -158,7 +163,7 @@ export function LandingNav() {
         <div className="min-h-0 overflow-hidden border-b">
         <nav className="mx-auto flex h-12 max-w-[1680px] items-center gap-6 px-4 text-sm font-medium sm:px-8" aria-label="Page sections">
           <button type="button" onClick={() => setFeedFilter({})} className="flex shrink-0 items-center gap-2 whitespace-nowrap text-foreground">
-            <LayoutGrid className="size-4" aria-hidden /> Explore all categories
+            <LayoutGrid className="size-4" aria-hidden /> {t.nav.exploreAll}
           </button>
           <span className="mx-auto flex items-center gap-4 lg:gap-7">
             {LINKS.map((l) => (
@@ -181,7 +186,7 @@ export function LandingNav() {
               }}
               className="flex min-h-12 items-center gap-3 rounded-xl px-2 text-left text-[15px] font-medium hover:bg-muted"
             >
-              <LayoutGrid className="size-4 text-primary" aria-hidden /> Explore all categories
+              <LayoutGrid className="size-4 text-primary" aria-hidden /> {t.nav.exploreAll}
             </button>
             {LINKS.map((l) => (
               <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="flex min-h-12 items-center rounded-xl px-2 text-[15px] font-medium hover:bg-muted">
@@ -192,10 +197,10 @@ export function LandingNav() {
           {!me && (
             <div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3">
               <Link href="/login" className={cn(buttonVariants({ variant: "outline" }), "h-11")}>
-                Log in
+                {t.common.login}
               </Link>
               <Link href="/signup" className={cn(buttonVariants(), "h-11")}>
-                Sign up
+                {t.common.signup}
               </Link>
             </div>
           )}

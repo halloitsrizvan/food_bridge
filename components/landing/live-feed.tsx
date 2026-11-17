@@ -15,8 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useMe, useOffers, usePublicNeeds, type OfferFilters } from "@/lib/api/hooks";
-import { CATEGORY_LABEL } from "@/lib/format";
-import { t } from "@/lib/i18n/en";
+import { fmt, useT } from "@/lib/i18n";
 import { requestLocation, useLocation } from "@/lib/use-location";
 import type { PublicOffer } from "@/lib/schemas/food";
 import { cn } from "@/lib/utils";
@@ -39,6 +38,7 @@ function useDebounced<T>(v: T, ms = 300) {
 }
 
 export function LiveFeed() {
+  const t = useT();
   const router = useRouter();
   const { data: me } = useMe();
   const [q, setQ] = useState("");
@@ -102,24 +102,24 @@ export function LiveFeed() {
       <div className="mx-auto max-w-[1680px] px-4 sm:px-8">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-semibold sm:text-4xl">Best Food Near {loc.place ?? "You"}</h2>
-          <p className="text-muted-foreground">{t.landing.liveSub}</p>
+          <h2 className="font-display text-2xl font-semibold sm:text-4xl">{fmt(t.feed.bestNear, { place: loc.place ?? t.feed.you })}</h2>
+          <p className="text-muted-foreground">{t.feed.sub}</p>
         </div>
         <div className="flex gap-2" role="group" aria-label="Sort">
           {located ? (
             <Chip active={sort === "nearest"} onClick={() => setSort("nearest")}>
-              Nearest
+              {t.feed.nearest}
             </Chip>
           ) : (
             <Chip active={false} onClick={() => requestLocation(true)}>
-              {loc.status === "asking" ? "Locating..." : "Use my location"}
+              {loc.status === "asking" ? t.feed.locating : t.feed.useLocation}
             </Chip>
           )}
           <Chip active={sort === "soonest"} onClick={() => setSort("soonest")}>
-            Soonest expiring
+            {t.feed.soonest}
           </Chip>
           <Chip active={sort === "newest"} onClick={() => setSort("newest")}>
-            Newest
+            {t.feed.newest}
           </Chip>
         </div>
       </div>
@@ -128,9 +128,9 @@ export function LiveFeed() {
         <div className="grid gap-3 sm:grid-cols-[1fr_14rem]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-            <Input aria-label="Search food" placeholder="Search biryani, sadhya, bread..." value={q} onChange={(e) => setQ(e.target.value)} className="h-11 rounded-xl pl-9" />
+            <Input aria-label={t.nav.searchLabel} placeholder={t.nav.searchPlaceholder} value={q} onChange={(e) => setQ(e.target.value)} className="h-11 rounded-xl pl-9" />
           </div>
-          <Input aria-label="Filter by area" placeholder="Area (e.g. Palayam)" value={area} onChange={(e) => setArea(e.target.value)} className="h-11 rounded-xl" />
+          <Input aria-label={t.feed.areaLabel} placeholder={t.feed.areaPlaceholder} value={area} onChange={(e) => setArea(e.target.value)} className="h-11 rounded-xl" />
         </div>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Filters">
           <button
@@ -139,21 +139,21 @@ export function LiveFeed() {
             onClick={() => setShowNeeds((v) => !v)}
             className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors", showNeeds ? "border-info bg-info text-white" : "border-info/40 bg-background text-info hover:bg-info/10")}
           >
-            <HandHeart className="size-4" aria-hidden /> Food + requests
+            <HandHeart className="size-4" aria-hidden /> {t.feed.foodRequests}
           </button>
           <span className="mx-1 hidden w-px bg-line sm:block" aria-hidden />
-          <Chip active={diet === "VEG"} onClick={() => setDiet(diet === "VEG" ? undefined : "VEG")}>Veg</Chip>
-          <Chip active={diet === "NON_VEG"} onClick={() => setDiet(diet === "NON_VEG" ? undefined : "NON_VEG")}>Non-veg</Chip>
+          <Chip active={diet === "VEG"} onClick={() => setDiet(diet === "VEG" ? undefined : "VEG")}>{t.feed.veg}</Chip>
+          <Chip active={diet === "NON_VEG"} onClick={() => setDiet(diet === "NON_VEG" ? undefined : "NON_VEG")}>{t.feed.nonveg}</Chip>
           <span className="mx-1 hidden w-px bg-line sm:block" aria-hidden />
           {[60, 120, 240].map((m) => (
             <Chip key={m} active={maxMin === m} onClick={() => setMaxMin(maxMin === m ? undefined : m)}>
-              Under {m / 60}h left
+              {fmt(t.feed.underH, { h: m / 60 })}
             </Chip>
           ))}
           <span className="mx-1 hidden w-px bg-line sm:block" aria-hidden />
           {(["COOKED", "PACKAGED", "RAW"] as const).map((c) => (
             <Chip key={c} active={category === c} onClick={() => setCategory(category === c ? undefined : c)}>
-              {CATEGORY_LABEL[c]}
+              {t.labels.category[c]}
             </Chip>
           ))}
         </div>
@@ -164,25 +164,25 @@ export function LiveFeed() {
       ) : isPending ? (
         <CardSkeletons n={6} />
       ) : data.items.length === 0 && !(showNeeds && needsQ.data?.items.length) ? (
-        <EmptyState art="search" title="No food matches right now" description="Try clearing a filter. New surplus is posted all day, and the list updates on its own." action={<Button variant="outline" onClick={() => { setQ(""); setArea(""); setDiet(undefined); setCategory(undefined); setMaxMin(undefined); }}>Clear filters</Button>} />
+        <EmptyState art="search" title={t.feed.emptyTitle} description={t.feed.emptyBody} action={<Button variant="outline" onClick={() => { setQ(""); setArea(""); setDiet(undefined); setCategory(undefined); setMaxMin(undefined); }}>{t.feed.clear}</Button>} />
       ) : (
         <>
-          {showNeeds && <h3 className="mb-3 font-display text-lg font-semibold">Available food <span className="text-sm font-normal text-muted-foreground">({data.total})</span></h3>}
-          {data.items.length === 0 && <p className="mb-4 text-sm text-muted-foreground">No food is available with these filters right now.</p>}
+          {showNeeds && <h3 className="mb-3 font-display text-lg font-semibold">{t.feed.available} <span className="text-sm font-normal text-muted-foreground">({data.total})</span></h3>}
+          {data.items.length === 0 && <p className="mb-4 text-sm text-muted-foreground">{t.feed.noneWithFilters}</p>}
           <div className={cn("grid gap-4 sm:grid-cols-2 lg:grid-cols-3 transition-opacity", isPlaceholderData && "opacity-60")} aria-live="polite">
             {data.items.map((o, i) => (
-              <PostCard key={o.id} offer={o} index={i} onOpen={() => setSelected(o)} onContact={() => contact(o)} actionLabel={me?.role === "GIVER" ? "View" : "Contact"} />
+              <PostCard key={o.id} offer={o} index={i} onOpen={() => setSelected(o)} onContact={() => contact(o)} actionLabel={me?.role === "GIVER" ? t.feed.view : t.feed.contact} />
             ))}
           </div>
           {data.pages > 1 && (
             <nav className="mt-8 flex items-center justify-center gap-3" aria-label="Pagination">
-              <Button variant="outline" size="icon" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} aria-label="Previous page" className="size-11 rounded-xl">
+              <Button variant="outline" size="icon" disabled={page <= 1} onClick={() => setPage((p) => p - 1)} aria-label="‹" className="size-11 rounded-xl">
                 <ChevronLeft />
               </Button>
               <span className="tabular text-sm text-muted-foreground">
-                Page {data.page} of {data.pages}
+                {fmt(t.feed.page, { page: data.page, pages: data.pages })}
               </span>
-              <Button variant="outline" size="icon" disabled={page >= data.pages} onClick={() => setPage((p) => p + 1)} aria-label="Next page" className="size-11 rounded-xl">
+              <Button variant="outline" size="icon" disabled={page >= data.pages} onClick={() => setPage((p) => p + 1)} aria-label="›" className="size-11 rounded-xl">
                 <ChevronRight />
               </Button>
             </nav>
@@ -191,7 +191,7 @@ export function LiveFeed() {
           {showNeeds && (
             <div className="mt-10" aria-live="polite">
               <h3 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold">
-                <HandHeart className="size-5 text-info" aria-hidden /> Receivers asking for food{" "}
+                <HandHeart className="size-5 text-info" aria-hidden /> {t.feed.receiversAsking}{" "}
                 <span className="text-sm font-normal text-muted-foreground">({needsQ.data?.total ?? 0})</span>
               </h3>
               {needsQ.isPending ? (
@@ -199,11 +199,11 @@ export function LiveFeed() {
               ) : needsQ.isError ? (
                 <ErrorState message={t.states.error} onRetry={() => needsQ.refetch()} />
               ) : needsQ.data.items.length === 0 ? (
-                <p className="rounded-2xl border border-dashed bg-background p-6 text-center text-sm text-muted-foreground">No open requests with these filters.</p>
+                <p className="rounded-2xl border border-dashed bg-background p-6 text-center text-sm text-muted-foreground">{t.feed.noRequests}</p>
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {needsQ.data.items.map((n, i) => (
-                    <NeedCard key={n.id} need={n} index={i} disabled={me?.role === "TAKER"} actionLabel={me?.role === "TAKER" ? "Receivers cannot offer" : "I can give this"} onAction={() => offerToNeed(n)} />
+                    <NeedCard key={n.id} need={n} index={i} disabled={me?.role === "TAKER"} actionLabel={me?.role === "TAKER" ? t.feed.cannotOffer : t.feed.canGive} onAction={() => offerToNeed(n)} />
                   ))}
                 </div>
               )}
@@ -217,11 +217,11 @@ export function LiveFeed() {
       <Dialog open={!!loginFor} onOpenChange={(o) => !o && setLoginFor(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{loginFor?.kind === "need" ? "Log in as a giver to offer food" : t.gate.loginToClaim}</DialogTitle>
+            <DialogTitle>{loginFor?.kind === "need" ? t.feed.loginAsGiver : t.gate.loginToClaim}</DialogTitle>
             <DialogDescription>
-              {loginFor?.kind === "need" ? <>Log in as a giver to offer food to <b>{loginFor.who}</b> for “{loginFor.title}”.</> : <>Log in as a receiver to contact <b>{loginFor?.who}</b> about “{loginFor?.title}”.</>} New here?{" "}
+              {loginFor?.kind === "need" ? fmt(t.feed.dlgNeed, { who: loginFor.who, title: loginFor.title }) : fmt(t.feed.dlgOffer, { who: loginFor?.who ?? "", title: loginFor?.title ?? "" })} {t.feed.newHere}{" "}
               <a className="font-medium text-primary underline" href="/signup">
-                Create an account
+                {t.feed.createAccount}
               </a>
               .
             </DialogDescription>
@@ -235,6 +235,7 @@ export function LiveFeed() {
 }
 
 function OfferDetail({ offer, onClose, onContact, role }: { offer: PublicOffer | null; onClose: () => void; onContact: (o: PublicOffer) => void; role?: string }) {
+  const t = useT();
   return (
     <Dialog open={!!offer} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-xl">
@@ -246,7 +247,7 @@ function OfferDetail({ offer, onClose, onContact, role }: { offer: PublicOffer |
                 <div>
                   <DialogTitle className="text-xl">{offer.title}</DialogTitle>
                   <DialogDescription>
-                    {offer.quantityMeals} meals · {offer.area}
+                    {offer.quantityMeals} {t.common.meals} · {offer.area}
                   </DialogDescription>
                 </div>
               </div>
@@ -256,23 +257,23 @@ function OfferDetail({ offer, onClose, onContact, role }: { offer: PublicOffer |
               <ModeChip mode={offer.mode} />
             </div>
             {offer.description && <p className="text-sm text-muted-foreground">{offer.description}</p>}
-            <BigCountdown expiresAt={offer.expiresAt} startAt={offer.createdAt} caption="Safe to hand over until" />
+            <BigCountdown expiresAt={offer.expiresAt} startAt={offer.createdAt} caption={t.feed.safeUntil} />
             <div className="flex items-center gap-3 rounded-2xl bg-muted p-3">
               <Avatar name={offer.giverName} kind={offer.giverKind} />
               <div className="flex-1">
                 <p className="text-sm font-semibold">{offer.giverName}</p>
-                <p className="text-xs text-muted-foreground">{kindLabel(offer.giverKind)} · trust {offer.giverTrust}</p>
+                <p className="text-xs text-muted-foreground">{kindLabel(offer.giverKind)} · {t.feed.trustWord} {offer.giverTrust}</p>
               </div>
             </div>
             {offer.lat != null && offer.lng != null && (
               <div>
-                <MapView height={180} zoom={13} center={[offer.lat, offer.lng]} markers={[{ id: "a", lat: offer.lat, lng: offer.lng, color: "#088178", label: `Around ${offer.area}` }]} />
-                <p className="mt-1.5 text-xs text-muted-foreground">Approximate area only. The exact address is shared after the giver accepts.</p>
+                <MapView height={180} zoom={13} center={[offer.lat, offer.lng]} markers={[{ id: "a", lat: offer.lat, lng: offer.lng, color: "#088178", label: fmt(t.feed.around, { area: offer.area }) }]} />
+                <p className="mt-1.5 text-xs text-muted-foreground">{t.feed.approx}</p>
               </div>
             )}
             {role !== "GIVER" && (
               <Button className="h-12 rounded-xl text-base" onClick={() => onContact(offer)}>
-                {role ? "Contact this giver" : t.gate.loginToClaim}
+                {role ? t.feed.contactGiver : t.gate.loginToClaim}
               </Button>
             )}
           </>

@@ -3,10 +3,11 @@
 import { Cloud, Scale, Soup, Radio } from "lucide-react";
 import { CountUp } from "@/components/shared/count-up";
 import { useImpact } from "@/lib/api/hooks";
-import { t } from "@/lib/i18n/en";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function ImpactCounters({ className, tone = "card" }: { className?: string; tone?: "card" | "plain" }) {
+  const t = useT();
   const { data, isPending } = useImpact();
   const items = [
     { icon: Soup, label: t.counters.meals, v: data?.meals ?? 0, d: 0 },

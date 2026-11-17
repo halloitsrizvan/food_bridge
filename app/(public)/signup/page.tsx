@@ -6,7 +6,7 @@ export const metadata = { title: "Create account" };
 
 export default function SignupPage() {
   return (
-    <AuthLayout title="Join FoodBridge" subtitle="Takes a minute. Details like your location come next.">
+    <AuthLayout kind="signup">
       <SignupForm />
       <DemoAccounts />
     </AuthLayout>

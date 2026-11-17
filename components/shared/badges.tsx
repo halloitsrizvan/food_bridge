@@ -1,15 +1,19 @@
+"use client";
+
 import { Leaf, Salad, Drumstick, Wheat, Package, Carrot, Truck, Footprints, ArrowLeftRight } from "lucide-react";
-import { CATEGORY_LABEL, DIET_LABEL, initials, KIND_LABEL, MODE_LABEL } from "@/lib/format";
+import { initials, KIND_LABEL } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import type { Category, Diet, Mode } from "@/lib/schemas/food";
 import { cn } from "@/lib/utils";
 
 export function DietBadge({ diet, className }: { diet: Diet; className?: string }) {
+  const t = useT();
   const veg = diet === "VEG";
   const both = diet === "BOTH";
   return (
     <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1", veg ? "bg-primary/10 text-primary ring-primary/25" : both ? "bg-info/10 text-info ring-info/25" : "bg-clay/10 text-clay ring-clay/25", className)}>
       {veg ? <Leaf className="size-3" aria-hidden /> : <Drumstick className="size-3" aria-hidden />}
-      {DIET_LABEL[diet]}
+      {t.labels.diet[diet]}
     </span>
   );
 }
@@ -18,19 +22,21 @@ const CAT_ICON = { COOKED: Salad, PACKAGED: Package, RAW: Carrot } as const;
 const CAT_CLS = { COOKED: "bg-saffron/20 text-[#8a5a0b] dark:text-saffron", PACKAGED: "bg-info/15 text-info", RAW: "bg-primary/15 text-primary" } as const;
 
 export function CategoryChip({ category, className }: { category: Category; className?: string }) {
+  const t = useT();
   const Icon = CAT_ICON[category] ?? Wheat;
   return (
-    <span className={cn("grid size-10 shrink-0 place-items-center rounded-xl", CAT_CLS[category], className)} title={CATEGORY_LABEL[category]}>
+    <span className={cn("grid size-10 shrink-0 place-items-center rounded-xl", CAT_CLS[category], className)} title={t.labels.category[category]}>
       <Icon className="size-5" aria-hidden />
     </span>
   );
 }
 
 export function ModeChip({ mode, className }: { mode: Mode; className?: string }) {
+  const t = useT();
   const Icon = mode === "GIVER_DELIVERS" ? Truck : mode === "TAKER_PICKS_UP" ? Footprints : ArrowLeftRight;
   return (
     <span className={cn("inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground", className)}>
-      <Icon className="size-3" aria-hidden /> {MODE_LABEL[mode]}
+      <Icon className="size-3" aria-hidden /> {t.labels.mode[mode]}
     </span>
   );
 }

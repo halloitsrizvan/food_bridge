@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Carrot, MapPin, Package, Salad, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatLeft } from "@/lib/format";
+import { fmt, useT } from "@/lib/i18n";
 import type { OfferWithMatch } from "@/lib/schemas/food";
 import { useNow } from "@/lib/use-now";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,8 @@ function Stars({ trust }: { trust: number }) {
   );
 }
 
-export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel = "Contact", busy, className }: Props) {
+export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel, busy, className }: Props) {
+  const t = useT();
   const reduce = useReducedMotion();
   const now = useNow();
   const upcoming = !!offer.scheduledFor && !!now && new Date(offer.scheduledFor).getTime() > now;
@@ -65,7 +67,7 @@ export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel = "C
         <span className="absolute left-2.5 top-2.5"><DietBadge diet={offer.diet} className="bg-background/90 backdrop-blur" /></span>
         <span className="absolute right-2 top-2">
           {upcoming ? (
-            <span className="rounded-full bg-info px-2.5 py-1 text-xs font-semibold text-white">Upcoming</span>
+            <span className="rounded-full bg-info px-2.5 py-1 text-xs font-semibold text-white">{t.feed.upcoming}</span>
           ) : (
             <span className="block rounded-full bg-background/95 p-0.5 shadow-soft"><CountdownRing expiresAt={offer.expiresAt} startAt={offer.createdAt} size={46} stroke={4} /></span>
           )}
@@ -77,22 +79,22 @@ export function PostCard({ offer, index = 0, onOpen, onContact, actionLabel = "C
         <Stars trust={offer.giverTrust} />
         <p className="flex items-baseline gap-2">
           <span className="font-display text-xl font-semibold tabular text-primary">{offer.quantityMeals}</span>
-          <span className="text-sm text-muted-foreground">meals</span>
+          <span className="text-sm text-muted-foreground">{t.common.meals}</span>
           <ModeChip mode={offer.mode} className="ml-auto" />
         </p>
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="size-3.5 shrink-0" aria-hidden /> <span className="truncate">{offer.distanceKm != null && <b className="text-foreground">{offer.distanceKm} km · </b>}{offer.area || "Nearby"} · {offer.giverName} · {kindLabel(offer.giverKind)}</span>
+          <MapPin className="size-3.5 shrink-0" aria-hidden /> <span className="truncate">{offer.distanceKm != null && <b className="text-foreground">{offer.distanceKm} km · </b>}{offer.area || t.feed.nearbyWord} · {offer.giverName} · {kindLabel(offer.giverKind)}</span>
         </p>
         {m && (
           <p className="flex items-center gap-1.5 rounded-xl bg-accent px-3 py-2 text-xs font-medium text-accent-foreground">
             <Zap className="size-3.5 text-primary" aria-hidden />
-            {m.travelMin} min away, {now ? formatLeft(new Date(offer.expiresAt).getTime() - now) : "…"} left · {Math.round(m.score * 100)} match
+            {fmt(t.feed.minAway, { min: m.travelMin, left: now ? formatLeft(new Date(offer.expiresAt).getTime() - now) : "…", pct: Math.round(m.score * 100) })}
           </p>
         )}
       </div>
 
-      <Button onClick={onContact} disabled={busy || upcoming} className="mx-1.5 mb-1 mt-auto h-11" aria-label={`${actionLabel}: ${offer.title}`}>
-        {upcoming ? "Opens soon" : busy ? "Please wait..." : actionLabel}
+      <Button onClick={onContact} disabled={busy || upcoming} className="mx-1.5 mb-1 mt-auto h-11" aria-label={`${actionLabel ?? t.feed.contact}: ${offer.title}`}>
+        {upcoming ? t.feed.opensSoon : busy ? t.feed.wait : (actionLabel ?? t.feed.contact)}
       </Button>
     </motion.article>
   );

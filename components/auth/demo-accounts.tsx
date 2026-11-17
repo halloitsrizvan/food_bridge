@@ -4,17 +4,19 @@ import { Building2, HandHeart, ShieldCheck, Soup } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const PASSWORD = "FoodBridge#2026";
 const ACCOUNTS = [
-  { email: "demo.giver@foodbridge.demo", label: "Giver", sub: "Restaurant / donor", icon: HandHeart, to: "/dashboard" },
-  { email: "demo.receiver@foodbridge.demo", label: "Receiver", sub: "Shelter / charity", icon: Soup, to: "/dashboard" },
-  { email: "gov@foodbridge.demo", label: "Admin", sub: "Government", icon: ShieldCheck, to: "/gov" },
+  { email: "demo.giver@foodbridge.demo", key: "demoGiver" as const, icon: HandHeart, to: "/dashboard" },
+  { email: "demo.receiver@foodbridge.demo", key: "demoReceiver" as const, icon: Soup, to: "/dashboard" },
+  { email: "gov@foodbridge.demo", key: "demoAdmin" as const, icon: ShieldCheck, to: "/gov" },
 ];
 
 export function DemoAccounts() {
+  const t = useT();
   const router = useRouter();
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export function DemoAccounts() {
     const { error } = await createSupabaseBrowserClient().auth.signInWithPassword({ email: a.email, password: PASSWORD });
     if (error) {
       setBusy(null);
-      return toast.error("Demo account is not available yet");
+      return toast.error(t.auth.demoUnavailable);
     }
     await qc.invalidateQueries({ queryKey: ["me"] });
     router.replace(a.to);
@@ -34,9 +36,9 @@ export function DemoAccounts() {
   return (
     <div className="mt-6 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-4">
       <p className="flex items-center gap-2 text-sm font-semibold">
-        <Building2 className="size-4 text-primary" aria-hidden /> Try a demo account
+        <Building2 className="size-4 text-primary" aria-hidden /> {t.auth.demoTitle}
       </p>
-      <p className="mt-0.5 text-xs text-muted-foreground">One tap to sign in. Password for all: {PASSWORD}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{t.auth.demoSub} {PASSWORD}</p>
       <div className="mt-3 grid gap-2">
         {ACCOUNTS.map((a) => (
           <button
@@ -48,7 +50,7 @@ export function DemoAccounts() {
           >
             <a.icon className="size-5 shrink-0 text-primary" aria-hidden />
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-medium">{busy === a.email ? "Signing in..." : `${a.label} · ${a.sub}`}</span>
+              <span className="block text-sm font-medium">{busy === a.email ? t.auth.demoSigning : t.auth[a.key]}</span>
               <span className="block truncate text-xs text-muted-foreground">{a.email}</span>
             </span>
           </button>

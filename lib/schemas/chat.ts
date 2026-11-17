@@ -7,4 +7,5 @@ export const ChatMessageSchema = z.object({
 
 export const ChatRequestSchema = z.object({
   messages: z.array(ChatMessageSchema).min(1).max(12),
+  lang: z.enum(["en", "ml", "hi"]).optional(),
 });

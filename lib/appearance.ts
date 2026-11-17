@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { APPEARANCE_KEY } from "./boot-scripts";
 
 // Per-device display preferences. Stored in localStorage and applied as data-* attributes on <html>
 // (styles live in app/globals.css). The theme itself (light/dark/system) is handled by next-themes.
@@ -11,7 +12,6 @@ export type Appearance = {
 };
 
 export const DEFAULT_APPEARANCE: Appearance = { font: "default", size: "md", motion: "full" };
-export const APPEARANCE_KEY = "fb:appearance";
 
 const FONTS: Appearance["font"][] = ["default", "system", "serif", "mono", "readable"];
 const SIZES: Appearance["size"][] = ["sm", "md", "lg", "xl"];
@@ -76,6 +76,3 @@ export function useAppearance() {
   const reset = useCallback(() => update(DEFAULT_APPEARANCE), [update]);
   return { appearance: value, update, reset };
 }
-
-/** Inline script run before first paint so the saved font/size don't flash. Mirrors parse()+apply(). */
-export const APPEARANCE_BOOT_SCRIPT = `try{var a=JSON.parse(localStorage.getItem("${APPEARANCE_KEY}")||"{}"),d=document.documentElement;d.dataset.font=a.font||"default";d.dataset.size=a.size||"md";d.dataset.motion=a.motion||"full"}catch(e){}`;

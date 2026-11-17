@@ -243,6 +243,11 @@
   background-size: 22px 22px;
 }
 
+/* ---- Language scripts: Latin fonts have no Malayalam / Devanagari glyphs ---- */
+html[lang="ml"] body, html[lang="ml"] :is(h1, h2, h3, .font-display) { font-family: var(--font-noto-ml), var(--font-dm-sans), system-ui, sans-serif; }
+html[lang="hi"] body, html[lang="hi"] :is(h1, h2, h3, .font-display) { font-family: var(--font-noto-hi), var(--font-dm-sans), system-ui, sans-serif; }
+html[lang="ml"] :is(h1, h2, h3, .font-display), html[lang="hi"] :is(h1, h2, h3, .font-display) { letter-spacing: 0; }
+
 /* ---- User appearance settings (profile page). Unlayered so they win over base styles. ---- */
 html[data-size="sm"] { font-size: 14px; }
 html[data-size="lg"] { font-size: 18px; }

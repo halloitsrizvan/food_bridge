@@ -6,7 +6,7 @@ export const metadata = { title: "Log in" };
 
 export default function LoginPage() {
   return (
-    <AuthLayout title="Welcome back" subtitle="Log in to share or receive food.">
+    <AuthLayout kind="login">
       <LoginForm />
       <DemoAccounts />
     </AuthLayout>

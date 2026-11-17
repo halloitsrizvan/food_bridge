@@ -6,22 +6,26 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Logo } from "@/components/layout/logo";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n";
 import { clearOfflineData } from "@/lib/pwa";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { href: "/gov", label: "Overview", icon: LayoutDashboard },
-  { href: "/gov/map", label: "Live map", icon: Map },
-  { href: "/gov/users", label: "Users", icon: Users },
-  { href: "/gov/complaints", label: "Complaints", icon: MessageSquareWarning },
-  { href: "/gov/config", label: "Config", icon: Settings2 },
-  { href: "/gov/profile", label: "Profile", icon: UserRound },
+const NAV_ITEMS = [
+  { href: "/gov", key: "overview" as const, icon: LayoutDashboard },
+  { href: "/gov/map", key: "liveMap" as const, icon: Map },
+  { href: "/gov/users", key: "users" as const, icon: Users },
+  { href: "/gov/complaints", key: "complaints" as const, icon: MessageSquareWarning },
+  { href: "/gov/config", key: "config" as const, icon: Settings2 },
+  { href: "/gov/profile", key: "profileShort" as const, icon: UserRound },
 ];
 
 export function GovShell({ user, children }: { user: { id: string; name: string; email: string }; children: React.ReactNode }) {
+  const t = useT();
+  const NAV = NAV_ITEMS.map((n) => ({ ...n, label: t.shell[n.key] }));
   const pathname = usePathname();
   const router = useRouter();
   const qc = useQueryClient();
@@ -30,7 +34,7 @@ export function GovShell({ user, children }: { user: { id: string; name: string;
     <div className="flex min-h-screen">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-sidebar p-4 lg:flex">
         <Link href="/gov" className="mb-1 px-2"><Logo /></Link>
-        <p className="mb-6 px-2 text-xs font-semibold uppercase tracking-wide text-clay">Government console</p>
+        <p className="mb-6 px-2 text-xs font-semibold uppercase tracking-wide text-clay">{t.shell.console}</p>
         <nav className="flex flex-1 flex-col gap-1" aria-label="Government">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} aria-current={active(n.href) ? "page" : undefined} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium", active(n.href) ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
@@ -48,10 +52,11 @@ export function GovShell({ user, children }: { user: { id: string; name: string;
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
+            <LanguageSwitcher />
             <ThemeToggle />
             <NotificationBell userId={user.id} basePath="/gov" />
             <Button variant="ghost" className="h-11 gap-2 rounded-xl" onClick={async () => { await clearOfflineData(); await createSupabaseBrowserClient().auth.signOut(); qc.clear(); router.replace("/login"); router.refresh(); }}>
-              <LogOut className="size-4" aria-hidden /> <span className="hidden sm:inline">Log out</span>
+              <LogOut className="size-4" aria-hidden /> <span className="hidden sm:inline">{t.shell.logout}</span>
             </Button>
           </div>
         </header>
